@@ -1,0 +1,2 @@
+Pillow=22.2.2
+StreamDeck=0.9.3
