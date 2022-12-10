@@ -2,6 +2,7 @@
 import os
 import subprocess
 import threading
+import time
 
 import json
 from PIL import Image, ImageDraw, ImageFont
@@ -10,11 +11,13 @@ from StreamDeck.ImageHelpers import PILHelper
 
 ASSETS_PATH = os.path.join(os.path.dirname(__file__), "assets")
 CURRENT_PAGE_ID = 0
-with open('keys.json', 'r') as f:
-    KEY_DATA = json.load(f)
-    CURRENT_PAGE_KEYS = KEY_DATA['pages'][CURRENT_PAGE_ID]
+global KEY_DATA
+
 KEY_STATES = []
 VIRTUAL_MIC_SETUP_SUCCESS = False
+
+with open('keys.json', 'r') as f:
+    KEY_DATA = json.load(f)
 
 # window = Tk()
 
@@ -49,6 +52,31 @@ check_requirements()
 
 ###
 
+
+def render_page(deck, page_id):
+    global CURRENT_PAGE_ID
+    CURRENT_PAGE_ID = page_id
+    
+    current_page_keys = KEY_DATA['pages'][CURRENT_PAGE_ID]
+
+    if len(KEY_STATES) <= CURRENT_PAGE_ID:
+        KEY_STATES.append([])
+
+    deck.reset()
+
+    # for key in range(deck.key_count()):
+    #     deck.set_key_image(key, None)
+    
+    KEY_STATES[CURRENT_PAGE_ID] = []
+    for key in range(len(current_page_keys)):
+        KEY_STATES[CURRENT_PAGE_ID].append(0)
+        if current_page_keys[key]:
+            # key_change_callback(deck, key, state=False)
+            selected_key = current_page_keys[key]
+            label_text = selected_key.get('label', '')
+            icon = selected_key.get('icon', 'default.png')
+            update_key_image(deck, key, label_text, icon)
+
 def action_run(action):
     os.system(action)
 
@@ -71,7 +99,16 @@ def action_soundbox_play(file_path):
     except:
         action_run("notify-send error setting soundbox virtual microphone")
 
-def perform_actions(actions):
+def action_change_page(deck, page):
+    global CURRENT_PAGE_ID
+   
+    if page == "next":
+        if CURRENT_PAGE_ID == len(KEY_DATA['pages']) -1:
+            render_page(deck, 0)
+        else:
+            render_page(deck, CURRENT_PAGE_ID + 1)
+
+def perform_actions(deck, actions):
     for action in actions:
         match action["name"]:
             case "run":
@@ -84,6 +121,8 @@ def perform_actions(actions):
                 action_add_to_clipboard(action["context"])
             case "soundbox_play":
                 action_soundbox_play(action["context"])
+            case "change_page":
+                action_change_page(deck, action["context"])
             case unknown_command:
                 print(f"Unknown command '{unknown_command}'")
 
@@ -133,7 +172,14 @@ def update_key_image(deck, key, label='Key', icon='default.png'):
 
 
 def key_change_callback(deck, key, pressed_state):
-    selected_key = CURRENT_PAGE_KEYS[key]
+    try:
+        current_page_keys = KEY_DATA['pages'][CURRENT_PAGE_ID]
+        current_page_keys[key]
+        current_page_keys[key]['actions']
+    except:
+        return
+
+    selected_key = current_page_keys[key]
     is_toggle_key = selected_key.get('type', '') == 'toggle'
     label_text = selected_key.get('label', '')
     default_icon = selected_key.get('icon', 'default.png')
@@ -145,22 +191,23 @@ def key_change_callback(deck, key, pressed_state):
             KEY_STATES[CURRENT_PAGE_ID][key] = 0
 
     if pressed_state:
-        if KEY_STATES[CURRENT_PAGE_ID][key] == 0 and is_toggle_key:
-            perform_actions(selected_key['actions_release'])
-        else:
-            perform_actions(selected_key['actions'])
         label = selected_key.get('label_pressed', label_text)
         icon = selected_key.get('icon_pressed', default_icon)
+        update_key_image(deck, key, label, icon)
+
+        if KEY_STATES[CURRENT_PAGE_ID][key] == 0 and is_toggle_key:
+            perform_actions(deck, selected_key['actions_release'])
     else:
         if KEY_STATES[CURRENT_PAGE_ID][key] == 1:
-            perform_actions(selected_key['actions'])
+            perform_actions(deck, selected_key['actions'])
             # Return and don't change the UI
             return
         else:
             label = selected_key.get('label', label_text)
             icon = selected_key.get('icon', default_icon)
-
-    update_key_image(deck, key, label, icon)
+            update_key_image(deck, key, label, icon)
+            perform_actions(deck, selected_key['actions'])
+            
 
 
 
@@ -183,8 +230,7 @@ if __name__ == "__main__":
             print("Something :/ ????????????????????")
 
         deck.open()
-        deck.reset()
-        
+
         print("Opened '{}' device (serial number: '{}', fw: '{}')".format(
             deck.deck_type(), deck.get_serial_number(), deck.get_firmware_version()
         ))
@@ -193,17 +239,7 @@ if __name__ == "__main__":
         
         setup_virtual_mic()
     
-        if len(KEY_STATES) <= CURRENT_PAGE_ID:
-            KEY_STATES.append([])
-
-        for key in range(len(CURRENT_PAGE_KEYS)):
-            KEY_STATES[CURRENT_PAGE_ID].append(0)
-            if CURRENT_PAGE_KEYS[key]:
-                # key_change_callback(deck, key, state=False)
-                selected_key = CURRENT_PAGE_KEYS[key]
-                label_text = selected_key.get('label', '')
-                icon = selected_key.get('icon', 'default.png')
-                update_key_image(deck, key, label_text, icon)
+        render_page(deck, 0)
         
         # Register callback function for when a key state changes.
         deck.set_key_callback(key_change_callback)
