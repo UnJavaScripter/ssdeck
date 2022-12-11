@@ -1,22 +1,29 @@
 #!/bin/bash
 
 # Based on the response from user Pujianto over https://superuser.com/questions/1675877/how-to-create-a-new-pipewire-virtual-device-that-to-combines-an-real-input-and-o
-NAME_OF_THE_INPUT_DEVICE=$1
-NAME_OF_THE_OUTPUT_DEVICE=$2
 
-if [[ $1 == "" ]]; then
-    echo ""
-    echo " A port name is required. To find your system's ports, use:"
-    echo "  $ pw-link -o "
-    echo ""
-    exit 1;
-fi
+while [[ $# -gt 0 ]]
+do
+    key="$1"
+    case $key in
+        --input-device=*)
+            # The first parameter is the input file
+            NAME_OF_THE_INPUT_DEVICE="${key#*=}"
+            shift # past argument
+            ;;
+        --output-device=*)
+            # The second parameter is the output file
+            NAME_OF_THE_OUTPUT_DEVICE="${key#*=}"
+            shift # past argument
+            ;;
+    esac
+done
 
 PORT_MATCH_INPUT=$(pw-link -o | grep $NAME_OF_THE_INPUT_DEVICE)
 
 if [[ $PORT_MATCH_INPUT == "" ]]; then
     echo ""
-    echo " INPUT Port name not found. To find your system's ports, use:"
+    echo " INPUT Port name \"$NAME_OF_THE_INPUT_DEVICE\" not found. To find your system's ports, use:"
     echo "  $ pw-link -o "
     echo ""
     exit 1;
@@ -26,7 +33,7 @@ PORT_MATCH_OUTPUT=$(pw-link -i | grep $NAME_OF_THE_OUTPUT_DEVICE)
 
 if [[ $PORT_MATCH_OUTPUT == "" ]]; then
     echo ""
-    echo " OUTPUT Port name not found. To find your system's ports, use:"
+    echo " OUTPUT Port name \"$NAME_OF_THE_OUTPUT_DEVICE\" not found. To find your system's ports, use:"
     echo "  $ pw-link -o "
     echo ""
     exit 1;

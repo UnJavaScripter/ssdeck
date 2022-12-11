@@ -2,12 +2,13 @@
 import os
 import subprocess
 import threading
-import time
 
 import json
 from PIL import Image, ImageDraw, ImageFont
 from StreamDeck.DeviceManager import DeviceManager
 from StreamDeck.ImageHelpers import PILHelper
+
+from audio_device_selector import AudioDeviceSelector
 
 ASSETS_PATH = os.path.join(os.path.dirname(__file__), "assets")
 CURRENT_PAGE_ID = 0
@@ -91,8 +92,9 @@ def action_add_to_clipboard(text):
 
 def action_soundbox_play(file_path):
     # TODO: target device
-    output_device_exists = action_run("pw-link -lio | grep soundbox-monitor-sink")
-    if not VIRTUAL_MIC_SETUP_SUCCESS and not output_device_exists:
+    # output_device_exists = action_run("pw-link -lio | grep soundbox-monitor-sink")
+    # if not VIRTUAL_MIC_SETUP_SUCCESS and not output_device_exists:
+    if not VIRTUAL_MIC_SETUP_SUCCESS:
         setup_virtual_mic()
     try:
         action_run(f"pw-play '{file_path}' --volume 0.2 --target soundbox-monitor-sink")
@@ -126,9 +128,34 @@ def perform_actions(deck, actions):
             case unknown_command:
                 print(f"Unknown command '{unknown_command}'")
 
-def setup_virtual_mic():
+def setup_virtual_mic(input_device_name = None, output_device_name = None):
+    global VIRTUAL_MIC_SETUP_SUCCESS
+    lines = []
+    if not input_device_name and not output_device_name:
+        # Check if the input file exists
+        if not os.path.exists('target_soundbox_audio_devices.txt'):
+            print("Error: Input file 'target_soundbox_audio_devices.txt' does not exist")
+            AudioDeviceSelector()
+
+        with open('target_soundbox_audio_devices.txt', 'r') as input_file:
+            # Read all the lines of the file into a list
+            lines = input_file.readlines()
+
+            # Check if the input file has at least two lines of text
+        if len(lines) < 2:
+            print("Error: Input file 'target_soundbox_audio_devices.txt' must have at least two lines. The first line defines the input device, and the second one, the output device")
+            print("  -> Deleting inconsistent file")
+            os.remove("target_soundbox_audio_devices.txt")
+            VIRTUAL_MIC_SETUP_SUCCESS= False
+            setup_virtual_mic()
+            return
+        else:
+            # Set the variable "second_line" to the second line of the file
+            input_device_name = lines[0].splitlines()[0]
+            output_device_name = lines[1].splitlines()[0]
     try:
-        action_run('sh setup-virtual-mic.sh bluez_input.60_AB_D2_3C_9B_11.0:capture_MONO bluez_output.60_AB_D2_3C_9B_11.1:playback_MONO')
+        print(f"Successfully set audio devices: \n input device: {input_device_name} \n output device: {output_device_name}")
+        action_run(f"sh setup-virtual-mic.sh --input-device={input_device_name} --output-device={output_device_name}")
         VIRTUAL_MIC_SETUP_SUCCESS= True
     except:
         VIRTUAL_MIC_SETUP_SUCCESS= False

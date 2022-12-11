@@ -1,3 +1,5 @@
+target_soundbox_audio_devices.txt
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
