@@ -76,10 +76,11 @@ def render_page(deck, page_id):
             selected_key = current_page_keys[key]
             label_text = selected_key.get('label', '')
             icon = selected_key.get('icon', 'default.png')
-            update_key_image(deck, key, label_text, icon)
+            deps = selected_key.get('deps', None)
+            update_key_image(deck, key, label_text, icon, deps)
 
 def action_run(action):
-    os.system(action)
+    return os.system(action)
 
 def action_media_control(action):
     action_run(f"sh ./media_control.sh '{action}'")
@@ -153,17 +154,24 @@ def setup_virtual_mic(input_device_name = None, output_device_name = None):
             # Set the variable "second_line" to the second line of the file
             input_device_name = lines[0].splitlines()[0]
             output_device_name = lines[1].splitlines()[0]
-    try:
-        print(f"Successfully set audio devices: \n input device: {input_device_name} \n output device: {output_device_name}")
-        action_run(f"sh setup-virtual-mic.sh --input-device={input_device_name} --output-device={output_device_name}")
+    print(f"\nAttempting to set audio devices: \n - input: {input_device_name} \n - output: {output_device_name}")
+    if action_run(f"sh setup-virtual-mic.sh --input-device={input_device_name} --output-device={output_device_name}") == 0:
         VIRTUAL_MIC_SETUP_SUCCESS= True
-    except:
+    else:
         VIRTUAL_MIC_SETUP_SUCCESS= False
 
 
+def check_meets_deps(deps):
+    for dep in deps:
+        match dep:
+            case "soundbox":
+                return True if VIRTUAL_MIC_SETUP_SUCCESS else False
 
-def render_key_image(deck, icon_filename, font_filename, label_text):
-    icon = Image.open(icon_filename)
+def render_key_image(deck, icon_filename, font_filename, label_text, is_disabled=False):
+    if is_disabled:
+        icon = Image.open(icon_filename).convert('LA')
+    else:
+        icon = Image.open(icon_filename)
     # Resize the source image asset to best-fit the dimensions of a single key.
     # A margin at the bottom is applied when a label is specified.
     image = PILHelper.create_scaled_image(deck, icon, margins=[0, 0, 20 if label_text else 0, 0])
@@ -184,12 +192,16 @@ def get_key_style(icon='default.png'):
         "font": os.path.join(ASSETS_PATH, "fonts", "Roboto-Regular.ttf"),
     }
 
-def update_key_image(deck, key, label='Key', icon='default.png'):
+def update_key_image(deck, key, label='Key', icon='default.png', deps=None):
+    is_disabled = False
+    if deps:
+        is_disabled = False if check_meets_deps(deps) else True
+    
     # Determine what icon and label to use on the generated key.
     key_style = get_key_style(icon)
 
     # Generate the custom key with the requested image and label.
-    image = render_key_image(deck, key_style["icon"], key_style["font"], label)
+    image = render_key_image(deck, key_style["icon"], key_style["font"], label, is_disabled)
 
     # Use a scoped-with on the deck to ensure we're the only thread using it
     # right now.
@@ -220,7 +232,8 @@ def key_change_callback(deck, key, pressed_state):
     if pressed_state:
         label = selected_key.get('label_pressed', label_text)
         icon = selected_key.get('icon_pressed', default_icon)
-        update_key_image(deck, key, label, icon)
+        deps = selected_key.get('deps', [])
+        update_key_image(deck, key, label, icon, deps)
 
         if KEY_STATES[CURRENT_PAGE_ID][key] == 0 and is_toggle_key:
             perform_actions(deck, selected_key['actions_release'])
@@ -232,8 +245,9 @@ def key_change_callback(deck, key, pressed_state):
         else:
             label = selected_key.get('label', label_text)
             icon = selected_key.get('icon', default_icon)
-            update_key_image(deck, key, label, icon)
+            deps = selected_key.get('deps', [])
             perform_actions(deck, selected_key['actions'])
+            update_key_image(deck, key, label, icon, deps)
             
 
 

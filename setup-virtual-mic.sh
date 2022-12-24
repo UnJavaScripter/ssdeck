@@ -19,21 +19,21 @@ do
     esac
 done
 
-PORT_MATCH_INPUT=$(pw-link -o | grep $NAME_OF_THE_INPUT_DEVICE)
+PORT_MATCH_INPUT=$(pw-link -o | grep "$NAME_OF_THE_INPUT_DEVICE")
 
 if [[ $PORT_MATCH_INPUT == "" ]]; then
     echo ""
-    echo " INPUT Port name \"$NAME_OF_THE_INPUT_DEVICE\" not found. To find your system's ports, use:"
+    echo " Error: INPUT Port name \"$NAME_OF_THE_INPUT_DEVICE\" not found. To find your system's ports, use:"
     echo "  $ pw-link -o "
     echo ""
     exit 1;
 fi
 
-PORT_MATCH_OUTPUT=$(pw-link -i | grep $NAME_OF_THE_OUTPUT_DEVICE)
+PORT_MATCH_OUTPUT=$(pw-link -i | grep "$NAME_OF_THE_OUTPUT_DEVICE")
 
 if [[ $PORT_MATCH_OUTPUT == "" ]]; then
     echo ""
-    echo " OUTPUT Port name \"$NAME_OF_THE_OUTPUT_DEVICE\" not found. To find your system's ports, use:"
+    echo " Error: OUTPUT Port name \"$NAME_OF_THE_OUTPUT_DEVICE\" not found. To find your system's ports, use:"
     echo "  $ pw-link -o "
     echo ""
     exit 1;
@@ -45,49 +45,69 @@ ids=$(pactl list modules | grep soundbox -B 2 | grep -Eo '^Module #[0-9]+' | cut
 
 # Loop over the IDs and unload each module
 for id in $ids; do
-  pactl unload-module $id
+  pactl unload-module "$id"
 done
 
-# Create combined sink
-echo "Creating soundbox-combined-sink"
-pactl load-module module-null-sink media.class=Audio/Sink sink_name=soundbox-combined-sink channel_map=stereo
+sleep 2 &&
 
-# Link audio source (mic) to `combined sink`
-## Get the capture device name with: `pw-link -o`
-echo "Linking audio source physical device $NAME_OF_THE_INPUT_DEVICE -> soundbox-combined-sink"
-pw-link $NAME_OF_THE_INPUT_DEVICE  soundbox-combined-sink:playback_FL
-pw-link $NAME_OF_THE_INPUT_DEVICE  soundbox-combined-sink:playback_FR
+function link_devices() {
+    pw-link $1 $2
+}
+
+INPUT_L="${NAME_OF_THE_INPUT_DEVICE}"'_FL'
+INPUT_R="${NAME_OF_THE_INPUT_DEVICE}"'_FR'
+OUTPUT_L="${NAME_OF_THE_OUTPUT_DEVICE}"'_FL'
+OUTPUT_R="${NAME_OF_THE_OUTPUT_DEVICE}"'_FR'
 
 # Create Virtual mic (The communication applications will use this one)
 echo "Creating virtual microphone device soundbox-virtualmic"
 pactl load-module module-null-sink media.class=Audio/Source/Virtual sink_name=soundbox-virtualmic channel_map=front-left,front-right
 
-# Link sink and virtual mic
-echo "Linking soundbox-combined-sink -> soundbox-virtualmic"
-pw-link soundbox-combined-sink:monitor_FL soundbox-virtualmic:input_FL
-pw-link soundbox-combined-sink:monitor_FR soundbox-virtualmic:input_FR
+# Create combined sink
+echo "Creating soundbox-combine-sink"
+pactl load-module module-null-sink media.class=Audio/Sink sink_name=soundbox-combine-sink channel_map=stereo
 
-#### Monitor
-
+# Create Monitor sink
 echo "Creating a monitor sink"
 pactl load-module module-null-sink media.class=Audio/Sink sink_name=soundbox-monitor-sink channel_map=stereo
 
-echo "Linking monitor sink -> output device"
-pw-link soundbox-monitor-sink:monitor_FL $NAME_OF_THE_OUTPUT_DEVICE
-pw-link soundbox-monitor-sink:monitor_FR $NAME_OF_THE_OUTPUT_DEVICE
+sleep 3 &&
 
-echo "Linking soundbox-monitor-sink -> soundbox-combined-sink"
-pw-link soundbox-monitor-sink:monitor_FL soundbox-virtualmic:input_FL
-pw-link soundbox-monitor-sink:monitor_FR soundbox-virtualmic:input_FR
+# Link audio source (mic) to `combine sink`
+## Get the capture device name with: `pw-link -o`
+echo "Linking audio source physical "$NAME_OF_THE_INPUT_DEVICE" > soundbox-combine-sink:playback_FL"
+echo "---------------------------------------"
+link_devices "$INPUT_L" soundbox-combine-sink:playback_FL
+link_devices "$INPUT_R" soundbox-combine-sink:playback_FR
+echo "---------------------------------------"
+
+echo "Linking monitor sink -> output device "$NAME_OF_THE_OUTPUT_DEVICE" "
+echo "---------------------------------------"
+link_devices soundbox-monitor-sink:monitor_FL "$OUTPUT_L"
+link_devices soundbox-monitor-sink:monitor_FR "$OUTPUT_R"
+echo "---------------------------------------"
+
+echo "Linking soundbox-monitor-sink -> soundbox-combine-sink"
+echo "---------------------------------------"
+link_devices soundbox-monitor-sink:monitor_FL soundbox-combine-sink:playback_FL
+link_devices soundbox-monitor-sink:monitor_FR soundbox-combine-sink:playback_FR
+echo "---------------------------------------"
+
+# Link sink and virtual mic
+echo "Linking soundbox-combine-sink -> soundbox-virtualmic"
+echo "---------------------------------------"
+link_devices soundbox-combine-sink:monitor_FL soundbox-virtualmic:input_FL
+link_devices soundbox-combine-sink:monitor_FR soundbox-virtualmic:input_FR
+echo "---------------------------------------"
 
 # Send sound to soundbox device
-# pw-play $PATH_TO_SOUND_FILE --volume 0.5 --target soundbox-device-sink
+# pw-play $PATH_TO_SOUND_FILE --volume 0.5 --target soundbox-monitor-sink
 
 echo "..."
-echo " Virtual microphone device successfully created with the name \"soundbox-virtualmic\" over the sink oundbox-device-sink."
+echo " Virtual microphone device successfully created with the name \"/soundbox-virtualmic\" over the sink oundbox-device-sink."
 echo " To play a sound file over the virtual microphone, run:"
 echo ""
-echo "  pw-play \$PATH_TO_SOUND_FILE --volume 0.5 --target soundbox-device-sink"
+echo "  pw-play \$PATH_TO_SOUND_FILE --volume 0.5 --target soundbox-monitor-sink"
 echo ""
 
 exit 0

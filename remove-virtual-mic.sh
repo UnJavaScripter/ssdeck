@@ -6,5 +6,6 @@ ids=$(pactl list modules | grep soundbox -B 2 | grep -Eo '^Module #[0-9]+' | cut
 
 # Loop over the IDs and unload each module
 for id in $ids; do
+  echo "Unloading module $id"
   pactl unload-module $id
 done
