@@ -54,51 +54,71 @@ function link_devices() {
     pw-link $1 $2
 }
 
-INPUT_L="${NAME_OF_THE_INPUT_DEVICE}"'_FL'
-INPUT_R="${NAME_OF_THE_INPUT_DEVICE}"'_FR'
-OUTPUT_L="${NAME_OF_THE_OUTPUT_DEVICE}"'_FL'
-OUTPUT_R="${NAME_OF_THE_OUTPUT_DEVICE}"'_FR'
+function remove_channel_from_name() {
+  echo "$1" | sed -E 's/(.*)_.*/\1/'
+}
+
+function get_device_name() {
+    input_device_name="$1"
+    channel="$2"
+    device_name_without_channel=$(remove_channel_from_name "$input_device_name")
+
+
+    if [[ "$input_device_name" == *"MONO"* ]]; then
+        echo "$device_name_without_channel""_MONO"
+    else
+        echo "$device_name_without_channel""_""$channel"
+    fi
+}
+
+INPUT_L=$(get_device_name "$NAME_OF_THE_INPUT_DEVICE" "FL")
+INPUT_R=$(get_device_name "$NAME_OF_THE_INPUT_DEVICE" "FR")
+
+OUTPUT_L=$(get_device_name "$NAME_OF_THE_OUTPUT_DEVICE" "FL")
+OUTPUT_R=$(get_device_name "$NAME_OF_THE_OUTPUT_DEVICE" "FR")
+
+
 
 # Create Virtual mic (The communication applications will use this one)
 echo "Creating virtual microphone device soundbox-virtualmic"
-pactl load-module module-null-sink media.class=Audio/Source/Virtual sink_name=soundbox-virtualmic channel_map=front-left,front-right
+pactl load-module module-null-sink media.class=Audio/Source/Virtual sink_name=soundbox-virtualmic channel_map=front-left,front-right rate=48000 channels=2 format=s16le
 
 # Create combined sink
 echo "Creating soundbox-combine-sink"
-pactl load-module module-null-sink media.class=Audio/Sink sink_name=soundbox-combine-sink channel_map=stereo
+pactl load-module module-null-sink media.class=Audio/Sink sink_name=soundbox-combine-sink channel_map=stereo rate=48000 channels=2 format=s16le
 
 # Create Monitor sink
 echo "Creating a monitor sink"
-pactl load-module module-null-sink media.class=Audio/Sink sink_name=soundbox-monitor-sink channel_map=stereo
+pactl load-module module-null-sink media.class=Audio/Sink sink_name=soundbox-monitor-sink channel_map=stereo rate=48000 channels=2 format=s16le
 
 sleep 3 &&
 
 # Link audio source (mic) to `combine sink`
 ## Get the capture device name with: `pw-link -o`
 echo "Linking audio source physical "$NAME_OF_THE_INPUT_DEVICE" > soundbox-combine-sink:playback_FL"
-echo "---------------------------------------"
+echo "|>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
 link_devices "$INPUT_L" soundbox-combine-sink:playback_FL
 link_devices "$INPUT_R" soundbox-combine-sink:playback_FR
-echo "---------------------------------------"
+echo "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<|"
 
 echo "Linking monitor sink -> output device "$NAME_OF_THE_OUTPUT_DEVICE" "
-echo "---------------------------------------"
+echo "|>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
 link_devices soundbox-monitor-sink:monitor_FL "$OUTPUT_L"
 link_devices soundbox-monitor-sink:monitor_FR "$OUTPUT_R"
-echo "---------------------------------------"
+echo "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<|"
 
 echo "Linking soundbox-monitor-sink -> soundbox-combine-sink"
-echo "---------------------------------------"
+echo "|>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
 link_devices soundbox-monitor-sink:monitor_FL soundbox-combine-sink:playback_FL
 link_devices soundbox-monitor-sink:monitor_FR soundbox-combine-sink:playback_FR
-echo "---------------------------------------"
+echo "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<|"
 
 # Link sink and virtual mic
 echo "Linking soundbox-combine-sink -> soundbox-virtualmic"
-echo "---------------------------------------"
+echo "|>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
 link_devices soundbox-combine-sink:monitor_FL soundbox-virtualmic:input_FL
 link_devices soundbox-combine-sink:monitor_FR soundbox-virtualmic:input_FR
-echo "---------------------------------------"
+echo "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<|"
 
 # Send sound to soundbox device
 # pw-play $PATH_TO_SOUND_FILE --volume 0.5 --target soundbox-monitor-sink
