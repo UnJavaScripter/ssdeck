@@ -3,8 +3,16 @@
         "notify",
         "media_control",
         "insert_text",
-        "clipboard"
+        "clipboard",
+        "soundbox"
     ],
+    "init": {
+        "actions": [
+            {
+                "name": "plugin:soundbox.Dummy_init_reqs"
+            }
+        ]
+    },
     "pages": [
         [
             {
@@ -16,7 +24,7 @@
                         "context": "echo pressed!"
                     }
                 ],
-                "actions_release": [
+                "actions_toggle": [
                     {
                         "name": "plugin:notify.Notify",
                         "context": {
@@ -93,8 +101,7 @@
                             "text": "—"
                         }
                     }
-                ],
-                "deps": ["soundbox"]
+                ]
             },
             {
                 "icon": "youtube.png",
@@ -109,17 +116,33 @@
                 "icon": "clap.png",
                 "actions": [
                     {
-                        "name": "soundbox_play",
-                        "context": "./assets/sounds/applause.mp3"
+                        "name": "plugin:soundbox.Play",
+                        "context": {
+                            "file_path": "./assets/sounds/applause.mp3"
+                        }
                     }
                 ],
-                "deps": {
-                    "plugins": [
-                        "soundbox"
-                    ]
-                }
+                "deps": [
+                    "plugin:soundbox.Get_Virtual_Mic_Setup_Sucess"
+                ]
             },
-            {},
+            {
+                "icon": "mic_external_off.png",
+                "label": "V. Mic Off",
+                "icon_pressed": "mic_external.png",
+                "label_pressed": "V. Mic On",
+                "actions": [
+                    {
+                        "name": "plugin:soundbox.Setup_virtual_mic"
+                    }
+                ],
+                "actions_toggle": [
+                    {
+                        "name": "plugin:soundbox.Remove_virtual_mic"
+                    }
+                ],
+                "type": "toggle"
+            },
             {},
             {},
             {
@@ -131,7 +154,7 @@
                         "context": "echo pressed!"
                     }
                 ],
-                "actions_release": [
+                "actions_toggle": [
                     {
                         "name": "run",
                         "context": "notify-send released!"
@@ -141,6 +164,7 @@
             },
             {
                 "icon": "next_page.png",
+                "label": "Next page 1",
                 "actions": [
                     {
                         "name": "change_page",
@@ -148,6 +172,7 @@
                     }
                 ]
             }
+            
         ],
         [
             {
@@ -278,6 +303,7 @@
             },
             {
                 "icon": "next_page.png",
+                "label": "Next page 2",
                 "actions": [
                     {
                         "name": "change_page",
@@ -299,6 +325,7 @@
             },
             {
                 "icon": "next_page.png",
+                "label": "Next page 3",
                 "actions": [
                     {
                         "name": "change_page",
@@ -322,6 +349,7 @@
             {},
             {
                 "icon": "next_page.png",
+                "label": "Next page 4",
                 "actions": [
                     {
                         "name": "change_page",

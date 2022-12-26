@@ -9,8 +9,6 @@ from PIL import Image, ImageDraw, ImageFont
 from StreamDeck.DeviceManager import DeviceManager
 from StreamDeck.ImageHelpers import PILHelper
 
-from audio_device_selector import AudioDeviceSelector
-
 PLUGINS = dict()
 
 ASSETS_PATH = os.path.join(os.path.dirname(__file__), "assets")
@@ -18,16 +16,10 @@ CURRENT_PAGE_ID = 0
 global KEY_DATA
 
 KEY_STATES = []
-VIRTUAL_MIC_SETUP_SUCCESS = False
 
 with open('keys.json', 'r') as f:
     KEY_DATA = json.load(f)
 
-# window = Tk()
-
-
-# window.title("Stream Deck Controller")
-# window.geometry("500x500")
 try:
     streamdecks = DeviceManager().enumerate()
 except:
@@ -56,7 +48,6 @@ check_requirements()
 
 ###
 
-
 def render_page(deck, page_id):
     global CURRENT_PAGE_ID
     CURRENT_PAGE_ID = page_id
@@ -68,9 +59,6 @@ def render_page(deck, page_id):
 
     deck.reset()
 
-    # for key in range(deck.key_count()):
-    #     deck.set_key_image(key, None)
-    
     KEY_STATES[CURRENT_PAGE_ID] = []
     for key in range(len(current_page_keys)):
         KEY_STATES[CURRENT_PAGE_ID].append(0)
@@ -82,23 +70,34 @@ def render_page(deck, page_id):
             deps = selected_key.get('deps', None)
             update_key_image(deck, key, label_text, icon, deps)
 
-def action_run(action):
-    return os.system(action)
+def plugin_get_attribute(name):
+    action_name = name.replace('plugin:', '')
+    action_components = action_name.split('.')
+    plugin_module = PLUGINS[action_components[0]]
+    method = plugin_module.__getattribute__(action_components[1])
+    return method.__call__()
 
-def action_soundbox_play(file_path):
-    # TODO: target device
-    # output_device_exists = action_run("pw-link -lio | grep soundbox-monitor-sink")
-    # if not VIRTUAL_MIC_SETUP_SUCCESS and not output_device_exists:
-    if not VIRTUAL_MIC_SETUP_SUCCESS:
-        setup_virtual_mic()
-    try:
-        action_run(f"pw-play '{file_path}' --volume 0.2 --target soundbox-monitor-sink")
-    except:
-        action_run("notify-send error setting soundbox virtual microphone")
+def plugin_call_action(name, context=None):
+    action_name = name.replace('plugin:', '')
+    action_components = action_name.split('.')
+    plugin_module = PLUGINS[action_components[0]]
+    method = plugin_module.__getattribute__(action_components[1])
+    if context is None:
+        method.__call__()
+    else:
+        method.__call__(context)
+
+def run_init_actions(actions):
+    for action in actions:
+        name = action['name']
+        context = action.get('context', None)
+        plugin_call_action(name, context)
+
+def action_run_command(action):
+    return os.system(action)
 
 def action_change_page(deck, page):
     global CURRENT_PAGE_ID
-   
     if page == "next":
         if CURRENT_PAGE_ID == len(KEY_DATA['pages']) -1:
             render_page(deck, 0)
@@ -113,58 +112,22 @@ def initialize_plugins(plugins):
 def perform_actions(deck, actions):
     for action in actions:
         if action['name'].startswith('plugin:'):
-            action_name = action['name'].replace('plugin:', '')
-            action_components = action_name.split('.')
-            plugin_module = PLUGINS[action_components[0]]
-            method = plugin_module.__getattribute__(action_components[1])
-            method.__call__(action["context"])
+            context = action.get('context', None)
+            plugin_call_action(action['name'], context)
             
         else:
             if action['name'] == 'run':
-                action_run(action['context'])
-            elif action['name'] == 'soundbox_play':
-                action_soundbox_play(action['context'])
+                action_run_command(action['context'])
             elif action['name'] == 'change_page':
                 action_change_page(deck, action['context'])
             else:
                 print(f"Unknown command {action['name']}")
 
-def setup_virtual_mic(input_device_name = None, output_device_name = None):
-    global VIRTUAL_MIC_SETUP_SUCCESS
-    lines = []
-    if not input_device_name and not output_device_name:
-        # Check if the input file exists
-        if not os.path.exists('target_soundbox_audio_devices.txt'):
-            print("Error: Input file 'target_soundbox_audio_devices.txt' does not exist")
-            AudioDeviceSelector()
-
-        with open('target_soundbox_audio_devices.txt', 'r') as input_file:
-            # Read all the lines of the file into a list
-            lines = input_file.readlines()
-
-            # Check if the input file has at least two lines of text
-        if len(lines) < 2:
-            print("Error: Input file 'target_soundbox_audio_devices.txt' must have at least two lines. The first line defines the input device, and the second one, the output device")
-            print("  -> Deleting inconsistent file")
-            os.remove("target_soundbox_audio_devices.txt")
-            VIRTUAL_MIC_SETUP_SUCCESS= False
-            setup_virtual_mic()
-            return
-        else:
-            # Set the variable "second_line" to the second line of the file
-            input_device_name = lines[0].splitlines()[0]
-            output_device_name = lines[1].splitlines()[0]
-    print(f"\nAttempting to set audio devices: \n - input: {input_device_name} \n - output: {output_device_name}")
-    if action_run(f"sh setup-virtual-mic.sh --input-device={input_device_name} --output-device={output_device_name}") == 0:
-        VIRTUAL_MIC_SETUP_SUCCESS= True
-    else:
-        VIRTUAL_MIC_SETUP_SUCCESS= False
-
-
-def check_meets_deps(deps):
+def check_key_meets_deps(deps):
+    dep_status = []
     for dep in deps:
-        if dep == "soundbox":
-            return True if VIRTUAL_MIC_SETUP_SUCCESS else False
+        dep_status.append(plugin_get_attribute(dep))
+    return all(dep_status)
 
 
 def render_key_image(deck, icon_filename, font_filename, label_text, is_disabled=False):
@@ -195,7 +158,7 @@ def get_key_style(icon='default.png'):
 def update_key_image(deck, key, label='Key', icon='default.png', deps=None):
     is_disabled = False
     if deps:
-        is_disabled = False if check_meets_deps(deps) else True
+        is_disabled = False if check_key_meets_deps(deps) else True
     
     # Determine what icon and label to use on the generated key.
     key_style = get_key_style(icon)
@@ -232,11 +195,11 @@ def key_change_callback(deck, key, pressed_state):
     if pressed_state:
         label = selected_key.get('label_pressed', label_text)
         icon = selected_key.get('icon_pressed', default_icon)
-        deps = selected_key.get('deps', [])
+        deps = selected_key.get('deps', None)
         update_key_image(deck, key, label, icon, deps)
 
         if KEY_STATES[CURRENT_PAGE_ID][key] == 0 and is_toggle_key:
-            perform_actions(deck, selected_key['actions_release'])
+            perform_actions(deck, selected_key['actions_toggle'])
     else:
         if KEY_STATES[CURRENT_PAGE_ID][key] == 1:
             perform_actions(deck, selected_key['actions'])
@@ -245,9 +208,11 @@ def key_change_callback(deck, key, pressed_state):
         else:
             label = selected_key.get('label', label_text)
             icon = selected_key.get('icon', default_icon)
-            deps = selected_key.get('deps', [])
-            perform_actions(deck, selected_key['actions'])
+            deps = selected_key.get('deps', None)
+            
+            # update_key_image needs to happen before perform_actions in order to avoid updating keys afterwards.
             update_key_image(deck, key, label, icon, deps)
+            perform_actions(deck, selected_key['actions'])
             
 
 
@@ -267,9 +232,6 @@ if __name__ == "__main__":
         print("Found {} Stream Deck(s).\n".format(len(streamdecks)))
         deck = streamdecks[0]
         
-        if not deck.is_visual():
-            print("Something :/ ????????????????????")
-
         deck.open()
 
         print("Opened '{}' device (serial number: '{}', fw: '{}')".format(
@@ -280,22 +242,16 @@ if __name__ == "__main__":
         
         if KEY_DATA["plugins"] != None:
             initialize_plugins(KEY_DATA["plugins"])
+        
+        if KEY_DATA["init"] != None:
+            if KEY_DATA["init"]["actions"] != None:
+                run_init_actions(KEY_DATA["init"]["actions"])
 
-        # setup_virtual_mic()
-    
         render_page(deck, 0)
         
         # Register callback function for when a key state changes.
         deck.set_key_callback(key_change_callback)
-
-
-        # def button_press(key_num, image_path):
-        # # Set the image of the key on the stream deck
-        #     print('press')
-        #     update_key_image(deck, 1, 'pressed!!')
-        # button1 = Button(window, text="Button 1", command=lambda: button_press(1, "1.png"))
-        # button1.pack()
-
+    
         # Wait until all application threads have terminated (for this example,
         # this is when all deck handles are closed).
         for t in threading.enumerate():
@@ -303,11 +259,3 @@ if __name__ == "__main__":
                 t.join()
             except RuntimeError:
                 pass
-                # window.mainloop()
-
-
-
-
-
-
-##
