@@ -1,2 +1,2 @@
-Pillow=22.2.2
-StreamDeck=0.9.3
+Pillow~=9.3.0
+StreamDeck~=0.9.3

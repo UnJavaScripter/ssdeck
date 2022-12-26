@@ -2,6 +2,7 @@
 import os
 import subprocess
 import threading
+import importlib
 
 import json
 from PIL import Image, ImageDraw, ImageFont
@@ -9,6 +10,8 @@ from StreamDeck.DeviceManager import DeviceManager
 from StreamDeck.ImageHelpers import PILHelper
 
 from audio_device_selector import AudioDeviceSelector
+
+PLUGINS = dict()
 
 ASSETS_PATH = os.path.join(os.path.dirname(__file__), "assets")
 CURRENT_PAGE_ID = 0
@@ -82,15 +85,6 @@ def render_page(deck, page_id):
 def action_run(action):
     return os.system(action)
 
-def action_media_control(action):
-    action_run(f"sh ./media_control.sh '{action}'")
-
-def action_insert_text(text):
-    action_run(f"xdotool type '{text}'")
-
-def action_add_to_clipboard(text):
-    action_run(f"echo '{text}' | xclip -sel clip")
-
 def action_soundbox_play(file_path):
     # TODO: target device
     # output_device_exists = action_run("pw-link -lio | grep soundbox-monitor-sink")
@@ -111,23 +105,29 @@ def action_change_page(deck, page):
         else:
             render_page(deck, CURRENT_PAGE_ID + 1)
 
+def initialize_plugins(plugins):
+    for plugin in plugins:
+        if plugin not in PLUGINS:
+            PLUGINS[plugin] = importlib.import_module(f'plugins.{plugin}')
+
 def perform_actions(deck, actions):
     for action in actions:
-        match action["name"]:
-            case "run":
-                action_run(action["context"])
-            case "media_control":
-                action_media_control(action["context"])
-            case "insert_text":
-                action_insert_text(action["context"])
-            case "add_to_clipboard":
-                action_add_to_clipboard(action["context"])
-            case "soundbox_play":
-                action_soundbox_play(action["context"])
-            case "change_page":
-                action_change_page(deck, action["context"])
-            case unknown_command:
-                print(f"Unknown command '{unknown_command}'")
+        if action['name'].startswith('plugin:'):
+            action_name = action['name'].replace('plugin:', '')
+            action_components = action_name.split('.')
+            plugin_module = PLUGINS[action_components[0]]
+            method = plugin_module.__getattribute__(action_components[1])
+            method.__call__(action["context"])
+            
+        else:
+            if action['name'] == 'run':
+                action_run(action['context'])
+            elif action['name'] == 'soundbox_play':
+                action_soundbox_play(action['context'])
+            elif action['name'] == 'change_page':
+                action_change_page(deck, action['context'])
+            else:
+                print(f"Unknown command {action['name']}")
 
 def setup_virtual_mic(input_device_name = None, output_device_name = None):
     global VIRTUAL_MIC_SETUP_SUCCESS
@@ -163,9 +163,9 @@ def setup_virtual_mic(input_device_name = None, output_device_name = None):
 
 def check_meets_deps(deps):
     for dep in deps:
-        match dep:
-            case "soundbox":
-                return True if VIRTUAL_MIC_SETUP_SUCCESS else False
+        if dep == "soundbox":
+            return True if VIRTUAL_MIC_SETUP_SUCCESS else False
+
 
 def render_key_image(deck, icon_filename, font_filename, label_text, is_disabled=False):
     if is_disabled:
@@ -278,7 +278,10 @@ if __name__ == "__main__":
 
         deck.set_brightness(30)
         
-        setup_virtual_mic()
+        if KEY_DATA["plugins"] != None:
+            initialize_plugins(KEY_DATA["plugins"])
+
+        # setup_virtual_mic()
     
         render_page(deck, 0)
         

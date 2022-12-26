@@ -1,53 +1,334 @@
 {
+    "plugins": [
+        "notify",
+        "media_control",
+        "insert_text",
+        "clipboard"
+    ],
     "pages": [
         [
-            {"icon": "monkey.png", "icon_pressed": "speak-no-evil-monkey.png", "actions": [{"name": "run", "context":"echo pressed!"}], "actions_release": [{"name": "run", "context":"notify-send released!"}], "type": "toggle"},
-            {"label": "Roll", "icon": "default.png", "icon_pressed": "default_pressed.png", "actions": [{"name": "run", "context":"echo YOU PRESSSSSSSED ME!"}]},
-            
-            {"icon": "media_previous.png", "actions": [{"name": "media_control", "context":"Previous"}]},
-            {"icon": "media_play_pause.png", "actions": [{"name": "media_control", "context":"PlayPause"}]},
-            {"icon": "media_next.png", "actions": [{"name": "media_control", "context":"Next"}]},
+            {
+                "icon": "monkey.png",
+                "icon_pressed": "speak-no-evil-monkey.png",
+                "actions": [
+                    {
+                        "name": "run",
+                        "context": "echo pressed!"
+                    }
+                ],
+                "actions_release": [
+                    {
+                        "name": "plugin:notify.Notify",
+                        "context": {
+                            "message": "it works!!!"
+                        }
+                    }
+                ],
+                "type": "toggle"
+            },
+            {
+                "label": "Roll",
+                "icon": "default.png",
+                "icon_pressed": "default_pressed.png",
+                "actions": [
+                    {
+                        "name": "run",
+                        "context": "echo YOU PRESSSSSSSED ME!"
+                    }
+                ]
+            },
+            {
+                "icon": "media_previous.png",
+                "actions": [
+                    {
+                        "name": "plugin:media_control.Control",
+                        "context": {
+                            "media_action": "Previous"
+                        }
+                    }
+                ]
+            },
+            {
+                "icon": "media_play_pause.png",
+                "actions": [
+                    {
+                        "name": "plugin:media_control.Control",
+                        "context": {
+                            "media_action": "PlayPause"
+                        }
+                    }
+                ]
+            },
+            {
+                "icon": "media_next.png",
+                "actions": [
+                    {
+                        "name": "plugin:media_control.Control",
+                        "context": {
+                            "media_action": "Next"
+                        }
+                    }
+                ]
+            },
             {},
-            {"label": "Type", "icon": "emdash.png", "actions": [{"name": "insert_text", "context":"—"}]},
-            {"label": "Copy", "icon": "emdash.png", "actions": [{"name": "add_to_clipboard", "context":"ioioi"}]},
-            {"icon": "youtube.png", "actions": [{"name": "run", "context":"/usr/bin/google-chrome --app-id=cinhimbnkkaeohfgghhklpknlkffjgod &"}]},
-            {"icon": "clap.png", "actions": [{"name": "soundbox_play", "context":"./assets/sounds/applause.mp3"}], "deps": ["soundbox"]},
+            {
+                "label": "Type",
+                "icon": "emdash.png",
+                "actions": [
+                    {
+                        "name": "plugin:insert_text.Insert",
+                        "context": {
+                            "text": "—"
+                        }
+                    }
+                ]
+            },
+            {
+                "label": "Copy",
+                "icon": "emdash.png",
+                "actions": [
+                    {
+                        "name": "plugin:clipboard.Add",
+                        "context": {
+                            "text": "—"
+                        }
+                    }
+                ],
+                "deps": ["soundbox"]
+            },
+            {
+                "icon": "youtube.png",
+                "actions": [
+                    {
+                        "name": "run",
+                        "context": "/usr/bin/google-chrome --app-id=cinhimbnkkaeohfgghhklpknlkffjgod &"
+                    }
+                ]
+            },
+            {
+                "icon": "clap.png",
+                "actions": [
+                    {
+                        "name": "soundbox_play",
+                        "context": "./assets/sounds/applause.mp3"
+                    }
+                ],
+                "deps": {
+                    "plugins": [
+                        "soundbox"
+                    ]
+                }
+            },
             {},
             {},
             {},
-            {"icon": "smiley.png", "icon_pressed": "speak-no-evil-monkey.png", "actions": [{"name": "run", "context":"echo pressed!"}], "actions_release": [{"name": "run", "context":"notify-send released!"}], "type": "toggle"},
-            {"icon": "next_page.png", "actions": [{"name": "change_page", "context":"next"}]}
+            {
+                "icon": "smiley.png",
+                "icon_pressed": "speak-no-evil-monkey.png",
+                "actions": [
+                    {
+                        "name": "run",
+                        "context": "echo pressed!"
+                    }
+                ],
+                "actions_release": [
+                    {
+                        "name": "run",
+                        "context": "notify-send released!"
+                    }
+                ],
+                "type": "toggle"
+            },
+            {
+                "icon": "next_page.png",
+                "actions": [
+                    {
+                        "name": "change_page",
+                        "context": "next"
+                    }
+                ]
+            }
         ],
         [
-            {"icon": "video_call.png", "actions": [{"name": "run", "context":" /usr/bin/microsoft-edge --new-window 'https://meet.google.com/' &"}]},
-            {"icon": "video_call.png", "actions": [{"name": "run", "context":" /usr/bin/microsoft-edge --new-window 'https://meet.google.com/' &"}]},
-            {"icon": "video_call.png", "actions": [{"name": "run", "context":" /usr/bin/microsoft-edge --new-window 'https://meet.google.com/' &"}]},
-            {"icon": "video_call.png", "actions": [{"name": "run", "context":" /usr/bin/microsoft-edge --new-window 'https://meet.google.com/' &"}]},
-            {"icon": "video_call.png", "actions": [{"name": "run", "context":" /usr/bin/microsoft-edge --new-window 'https://meet.google.com/' &"}]},
-            {"icon": "video_call.png", "actions": [{"name": "run", "context":" /usr/bin/microsoft-edge --new-window 'https://meet.google.com/' &"}]},
-            {"icon": "video_call.png", "actions": [{"name": "run", "context":" /usr/bin/microsoft-edge --new-window 'https://meet.google.com/' &"}]},
-            {"icon": "video_call.png", "actions": [{"name": "run", "context":" /usr/bin/microsoft-edge --new-window 'https://meet.google.com/' &"}]},
-            {"icon": "video_call.png", "actions": [{"name": "run", "context":" /usr/bin/microsoft-edge --new-window 'https://meet.google.com/' &"}]},
-            {"icon": "video_call.png", "actions": [{"name": "run", "context":" /usr/bin/microsoft-edge --new-window 'https://meet.google.com/' &"}]},
-            {"icon": "video_call.png", "actions": [{"name": "run", "context":" /usr/bin/microsoft-edge --new-window 'https://meet.google.com/' &"}]},
-            {"icon": "video_call.png", "actions": [{"name": "run", "context":" /usr/bin/microsoft-edge --new-window 'https://meet.google.com/' &"}]},
-            {"icon": "video_call.png", "actions": [{"name": "run", "context":" /usr/bin/microsoft-edge --new-window 'https://meet.google.com/' &"}]},
-            {"icon": "video_call.png", "actions": [{"name": "run", "context":" /usr/bin/microsoft-edge --new-window 'https://meet.google.com/' &"}]},
-            {"icon": "next_page.png", "actions": [{"name": "change_page", "context":"next"}]}
+            {
+                "icon": "video_call.png",
+                "actions": [
+                    {
+                        "name": "run",
+                        "context": " /usr/bin/microsoft-edge --new-window 'https://meet.google.com/' &"
+                    }
+                ]
+            },
+            {
+                "icon": "video_call.png",
+                "actions": [
+                    {
+                        "name": "run",
+                        "context": " /usr/bin/microsoft-edge --new-window 'https://meet.google.com/' &"
+                    }
+                ]
+            },
+            {
+                "icon": "video_call.png",
+                "actions": [
+                    {
+                        "name": "run",
+                        "context": " /usr/bin/microsoft-edge --new-window 'https://meet.google.com/' &"
+                    }
+                ]
+            },
+            {
+                "icon": "video_call.png",
+                "actions": [
+                    {
+                        "name": "run",
+                        "context": " /usr/bin/microsoft-edge --new-window 'https://meet.google.com/' &"
+                    }
+                ]
+            },
+            {
+                "icon": "video_call.png",
+                "actions": [
+                    {
+                        "name": "run",
+                        "context": " /usr/bin/microsoft-edge --new-window 'https://meet.google.com/' &"
+                    }
+                ]
+            },
+            {
+                "icon": "video_call.png",
+                "actions": [
+                    {
+                        "name": "run",
+                        "context": " /usr/bin/microsoft-edge --new-window 'https://meet.google.com/' &"
+                    }
+                ]
+            },
+            {
+                "icon": "video_call.png",
+                "actions": [
+                    {
+                        "name": "run",
+                        "context": " /usr/bin/microsoft-edge --new-window 'https://meet.google.com/' &"
+                    }
+                ]
+            },
+            {
+                "icon": "video_call.png",
+                "actions": [
+                    {
+                        "name": "run",
+                        "context": " /usr/bin/microsoft-edge --new-window 'https://meet.google.com/' &"
+                    }
+                ]
+            },
+            {
+                "icon": "video_call.png",
+                "actions": [
+                    {
+                        "name": "run",
+                        "context": " /usr/bin/microsoft-edge --new-window 'https://meet.google.com/' &"
+                    }
+                ]
+            },
+            {
+                "icon": "video_call.png",
+                "actions": [
+                    {
+                        "name": "run",
+                        "context": " /usr/bin/microsoft-edge --new-window 'https://meet.google.com/' &"
+                    }
+                ]
+            },
+            {
+                "icon": "video_call.png",
+                "actions": [
+                    {
+                        "name": "run",
+                        "context": " /usr/bin/microsoft-edge --new-window 'https://meet.google.com/' &"
+                    }
+                ]
+            },
+            {
+                "icon": "video_call.png",
+                "actions": [
+                    {
+                        "name": "run",
+                        "context": " /usr/bin/microsoft-edge --new-window 'https://meet.google.com/' &"
+                    }
+                ]
+            },
+            {
+                "icon": "video_call.png",
+                "actions": [
+                    {
+                        "name": "run",
+                        "context": " /usr/bin/microsoft-edge --new-window 'https://meet.google.com/' &"
+                    }
+                ]
+            },
+            {
+                "icon": "video_call.png",
+                "actions": [
+                    {
+                        "name": "run",
+                        "context": " /usr/bin/microsoft-edge --new-window 'https://meet.google.com/' &"
+                    }
+                ]
+            },
+            {
+                "icon": "next_page.png",
+                "actions": [
+                    {
+                        "name": "change_page",
+                        "context": "next"
+                    }
+                ]
+            }
         ],
         [
             {},
-            {"icon": "video_call.png", "actions": [{"name": "run", "context":" /usr/bin/microsoft-edge --new-window 'https://meet.google.com/' &"}]},
-            {"icon": "next_page.png", "actions": [{"name": "change_page", "context":"next"}]}
+            {
+                "icon": "video_call.png",
+                "actions": [
+                    {
+                        "name": "run",
+                        "context": " /usr/bin/microsoft-edge --new-window 'https://meet.google.com/' &"
+                    }
+                ]
+            },
+            {
+                "icon": "next_page.png",
+                "actions": [
+                    {
+                        "name": "change_page",
+                        "context": "next"
+                    }
+                ]
+            }
         ],
         [
             {},
-            {"icon": "video_call.png", "actions": [{"name": "run", "context":" /usr/bin/microsoft-edge --new-window 'https://meet.google.com/' &"}]},
+            {
+                "icon": "video_call.png",
+                "actions": [
+                    {
+                        "name": "run",
+                        "context": " /usr/bin/microsoft-edge --new-window 'https://meet.google.com/' &"
+                    }
+                ]
+            },
             {},
             {},
-            {"icon": "next_page.png", "actions": [{"name": "change_page", "context":"next"}]}
-
+            {
+                "icon": "next_page.png",
+                "actions": [
+                    {
+                        "name": "change_page",
+                        "context": "next"
+                    }
+                ]
+            }
         ]
     ]
-        
 }
