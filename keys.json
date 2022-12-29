@@ -63,7 +63,10 @@
                             "media_action": "PlayPause"
                         }
                     }
-                ]
+                ],
+                "state_modifiers": {
+                    "label": "plugin:media_control.Get_playback_status"
+                }
             },
             {
                 "icon": "media_next.png",
