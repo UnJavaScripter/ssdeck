@@ -21,15 +21,13 @@
                 "actions": [
                     {
                         "name": "run",
-                        "context": "echo pressed!"
+                        "context": "echo PRESSSS THE THING!"
                     }
                 ],
                 "actions_toggle": [
                     {
-                        "name": "plugin:notify.Notify",
-                        "context": {
-                            "message": "it works!!!"
-                        }
+                        "name": "run",
+                        "context": "echo RELEASSSSEEE THE THING!"
                     }
                 ],
                 "type": "toggle"
@@ -78,7 +76,25 @@
                     }
                 ]
             },
-            {},
+            {
+                "icon": "monkey.png",
+                "icon_pressed": "speak-no-evil-monkey.png",
+                "actions": [
+                    {
+                        "name": "run",
+                        "context": "echo action_iwaspressed!"
+                    }
+                ],
+                "actions_toggle": [
+                    {
+                        "name": "plugin:notify.Notify",
+                        "context": {
+                            "message": "it works!!!"
+                        }
+                    }
+                ],
+                "type": "toggle"
+            },
             {
                 "label": "Type",
                 "icon": "emdash.png",
@@ -124,7 +140,10 @@
                 ],
                 "deps": [
                     "plugin:soundbox.Get_Virtual_Mic_Setup_Sucess"
-                ]
+                ],
+                "state_modifiers": {
+                    "disabled_state": "plugin:soundbox.Get_Virtual_Mic_Setup_Sucess"
+                }
             },
             {
                 "icon": "mic_external_off.png",
@@ -141,7 +160,10 @@
                         "name": "plugin:soundbox.Remove_virtual_mic"
                     }
                 ],
-                "type": "toggle"
+                "type": "toggle",
+                "state_modifiers": {
+                    "pressed": "plugin:soundbox.Get_Virtual_Mic_Setup_Sucess"
+                }
             },
             {},
             {},
