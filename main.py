@@ -78,9 +78,11 @@ def set_key_states(deck, key_number, selected_key, pressed_state=0):
     state_modifiers = selected_key.get("state_modifiers")
     if state_modifiers is not None:
         if state_modifiers.get("label"):
-            label_text = plugin_get_attribute(state_modifiers["label"])
+            label_text = plugin_get_attribute(state_modifiers["label"]).replace("_", " ")
         if state_modifiers.get("icon"):
-            icon = f'{plugin_get_attribute(state_modifiers["icon"]).strip()}.png'
+            modified_icon_name = plugin_get_attribute(state_modifiers["icon"]).strip()
+            if len(modified_icon_name) > 0:
+                icon = f'{modified_icon_name}.png'
         if state_modifiers.get("disabled_state"):
             disabled_state = not plugin_get_attribute(state_modifiers["disabled_state"])
         if state_modifiers.get("pressed"):

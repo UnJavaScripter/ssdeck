@@ -56,7 +56,7 @@
                 ]
             },
             {
-                "icon": "media_play_pause.png",
+                "icon": "Not_Playing.png",
                 "actions": [
                     {
                         "name": "plugin:media_control.Control",
