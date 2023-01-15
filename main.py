@@ -11,13 +11,14 @@ from StreamDeck.ImageHelpers import PILHelper
 
 PLUGINS = dict()
 
+KEYS_FILE_PATH = os.path.join(os.path.dirname(__file__), "./keys.json")
 ASSETS_PATH = os.path.join(os.path.dirname(__file__), "assets")
 CURRENT_PAGE_ID = 0
 global KEY_DATA
 
 ACTIVE_KEY_STATES = []
 
-with open('keys.json', 'r') as f:
+with open(KEYS_FILE_PATH, 'r') as f:
     KEY_DATA = json.load(f)
 
 try:
@@ -73,13 +74,12 @@ def set_key_states(deck, key_number, selected_key, pressed_state=0):
     label_text = selected_key.get('label', '')
     icon = selected_key.get('icon', 'default.png')
     disabled_state = False
-
     state_modifiers = selected_key.get("state_modifiers")
     if state_modifiers is not None:
         if state_modifiers.get("label"):
             label_text = plugin_get_attribute(state_modifiers["label"])
         if state_modifiers.get("icon"):
-            icon = plugin_get_attribute(state_modifiers["icon"])
+            icon = f'{plugin_get_attribute(state_modifiers["icon"]).strip()}.png'
         if state_modifiers.get("disabled_state"):
             disabled_state = not plugin_get_attribute(state_modifiers["disabled_state"])
         if state_modifiers.get("pressed"):
@@ -180,7 +180,7 @@ def update_key_image(deck, key, label, icon='default.png', disabled_state=False)
         # Update requested key with the generated image.
         deck.set_key_image(key, image)
 
-def ui_changes(deck, key_number, pressed_state, selected_key, disabled_state=False, icon='default.png', label=None):
+def ui_changes(deck, key_number, pressed_state, selected_key, disabled_state=False, icon=None, label=None):
     is_toggle_key = selected_key.get('type', '') == 'toggle'
     
     if label:
@@ -191,7 +191,7 @@ def ui_changes(deck, key_number, pressed_state, selected_key, disabled_state=Fal
         default_icon = icon
     else:
         default_icon = selected_key.get('icon', 'default.png')
-
+    
     if pressed_state and is_toggle_key:
         if ACTIVE_KEY_STATES[CURRENT_PAGE_ID][key_number] == False:
             ACTIVE_KEY_STATES[CURRENT_PAGE_ID][key_number] = True
@@ -199,12 +199,16 @@ def ui_changes(deck, key_number, pressed_state, selected_key, disabled_state=Fal
             ACTIVE_KEY_STATES[CURRENT_PAGE_ID][key_number] = False
 
     if ACTIVE_KEY_STATES[CURRENT_PAGE_ID][key_number]:
-        label = selected_key.get('label_pressed', label_text)
-        icon = selected_key.get('icon_pressed', default_icon)
+        if label == None:
+            label = selected_key.get('label_pressed', label_text)
+        if icon == None:
+            icon = selected_key.get('icon_pressed', default_icon)
         update_key_image(deck, key_number, label, icon, disabled_state)
     else:
-        label = selected_key.get('label', label_text)
-        icon = selected_key.get('icon', default_icon)
+        if label == None:
+            label = selected_key.get('label', label_text)
+        if icon == None:
+            icon = selected_key.get('icon', default_icon)
         update_key_image(deck, key_number, label, icon, disabled_state)
 
 def key_change_callback(deck, key_number, pressed_state):
