@@ -3,6 +3,7 @@ import os
 import subprocess
 import threading
 import importlib
+import time
 
 import json
 from PIL import Image, ImageDraw, ImageFont
@@ -88,23 +89,23 @@ def set_key_states(deck, key_number, selected_key, pressed_state=0):
     ui_changes(deck, key_number, pressed_state, selected_key, disabled_state, icon, label_text)
 
 def render_page(deck, page_id):
-    global CURRENT_PAGE_ID
-    CURRENT_PAGE_ID = page_id
-    
-    current_page_keys = KEY_DATA['pages'][CURRENT_PAGE_ID]
+    while True:
+        global CURRENT_PAGE_ID
+        CURRENT_PAGE_ID = page_id
+        
+        current_page_keys = KEY_DATA['pages'][CURRENT_PAGE_ID]
 
-    if len(ACTIVE_KEY_STATES) <= CURRENT_PAGE_ID:
-        ACTIVE_KEY_STATES.append([])
+        if len(ACTIVE_KEY_STATES) <= CURRENT_PAGE_ID:
+            ACTIVE_KEY_STATES.append([])
 
-    deck.reset()
-
-    ACTIVE_KEY_STATES[CURRENT_PAGE_ID] = []
-    for key_number in range(len(current_page_keys)):
-        ACTIVE_KEY_STATES[CURRENT_PAGE_ID].append(0)
-        if current_page_keys[key_number]:
-            # key_change_callback(deck, key, state=False)
-            selected_key = current_page_keys[key_number]
-            set_key_states(deck, key_number, selected_key)
+        ACTIVE_KEY_STATES[CURRENT_PAGE_ID] = []
+        for key_number in range(len(current_page_keys)):
+            ACTIVE_KEY_STATES[CURRENT_PAGE_ID].append(0)
+            if current_page_keys[key_number]:
+                # key_change_callback(deck, key, state=False)
+                selected_key = current_page_keys[key_number]
+                set_key_states(deck, key_number, selected_key)
+        time.sleep(0.5)
 
 def run_init_actions(actions):
     for action in actions:
@@ -267,7 +268,9 @@ if __name__ == "__main__":
             if KEY_DATA["init"]["actions"] != None:
                 run_init_actions(KEY_DATA["init"]["actions"])
 
-        render_page(deck, 0)
+        deck.reset()
+        thread = threading.Thread(target=render_page, args=(deck, 0))
+        thread.start()
         
         # Register callback function for when a key state changes.
         deck.set_key_callback(key_change_callback)
