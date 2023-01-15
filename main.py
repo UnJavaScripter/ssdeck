@@ -88,24 +88,26 @@ def set_key_states(deck, key_number, selected_key, pressed_state=0):
         
     ui_changes(deck, key_number, pressed_state, selected_key, disabled_state, icon, label_text)
 
-def render_page(deck, page_id):
+def render_page(deck):
     while True:
         global CURRENT_PAGE_ID
-        CURRENT_PAGE_ID = page_id
-        
-        current_page_keys = KEY_DATA['pages'][CURRENT_PAGE_ID]
+        try:
+            current_page_keys = KEY_DATA['pages'][CURRENT_PAGE_ID]
 
-        if len(ACTIVE_KEY_STATES) <= CURRENT_PAGE_ID:
-            ACTIVE_KEY_STATES.append([])
+            if len(ACTIVE_KEY_STATES) <= CURRENT_PAGE_ID:
+                ACTIVE_KEY_STATES.append([])
 
-        ACTIVE_KEY_STATES[CURRENT_PAGE_ID] = []
-        for key_number in range(len(current_page_keys)):
-            ACTIVE_KEY_STATES[CURRENT_PAGE_ID].append(0)
-            if current_page_keys[key_number]:
-                # key_change_callback(deck, key, state=False)
-                selected_key = current_page_keys[key_number]
-                set_key_states(deck, key_number, selected_key)
-        time.sleep(0.5)
+            ACTIVE_KEY_STATES[CURRENT_PAGE_ID] = []
+            for key_number in range(len(current_page_keys)):
+                ACTIVE_KEY_STATES[CURRENT_PAGE_ID].append(0)
+                if current_page_keys[key_number]:
+                    # key_change_callback(deck, key, state=False)
+                    selected_key = current_page_keys[key_number]
+                    set_key_states(deck, key_number, selected_key)
+            time.sleep(0.5)
+        except IndexError:
+            pass
+        continue
 
 def run_init_actions(actions):
     for action in actions:
@@ -117,12 +119,13 @@ def action_run_command(action):
     return os.system(action)
 
 def action_change_page(deck, page):
+    deck.reset()
     global CURRENT_PAGE_ID
     if page == "next":
         if CURRENT_PAGE_ID == len(KEY_DATA['pages']) -1:
-            render_page(deck, 0)
+            CURRENT_PAGE_ID = 0
         else:
-            render_page(deck, CURRENT_PAGE_ID + 1)
+            CURRENT_PAGE_ID = CURRENT_PAGE_ID + 1
 
 def initialize_plugins(plugins):
     for plugin in plugins:
@@ -139,7 +142,7 @@ def perform_actions(deck, actions):
             if action['name'] == 'run':
                 action_run_command(action['context'])
             elif action['name'] == 'change_page':
-                action_change_page(deck, action['context'])
+                action_change_page(deck, "next")
             else:
                 print(f"Unknown command {action['name']}")
 
@@ -182,37 +185,43 @@ def update_key_image(deck, key, label, icon='default.png', disabled_state=False)
         deck.set_key_image(key, image)
 
 def ui_changes(deck, key_number, pressed_state, selected_key, disabled_state=False, icon=None, label=None):
-    is_toggle_key = selected_key.get('type', '') == 'toggle'
+    global CURRENT_PAGE_ID
     
-    if label:
-        label_text = label
-    else:
-        label_text = selected_key.get('label', '')
-    if icon:
-        default_icon = icon
-    else:
-        default_icon = selected_key.get('icon', 'default.png')
-    
-    if pressed_state and is_toggle_key:
-        if ACTIVE_KEY_STATES[CURRENT_PAGE_ID][key_number] == False:
-            ACTIVE_KEY_STATES[CURRENT_PAGE_ID][key_number] = True
+    try:
+        is_toggle_key = selected_key.get('type', '') == 'toggle'
+        
+        if label:
+            label_text = label
         else:
-            ACTIVE_KEY_STATES[CURRENT_PAGE_ID][key_number] = False
+            label_text = selected_key.get('label', '')
+        if icon:
+            default_icon = icon
+        else:
+            default_icon = selected_key.get('icon', 'default.png')
+        
+        if pressed_state and is_toggle_key:
+            if ACTIVE_KEY_STATES[CURRENT_PAGE_ID][key_number] == False:
+                ACTIVE_KEY_STATES[CURRENT_PAGE_ID][key_number] = True
+            else:
+                ACTIVE_KEY_STATES[CURRENT_PAGE_ID][key_number] = False
 
-    if ACTIVE_KEY_STATES[CURRENT_PAGE_ID][key_number]:
-        if label == None:
-            label = selected_key.get('label_pressed', label_text)
-        if icon == None:
-            icon = selected_key.get('icon_pressed', default_icon)
-        update_key_image(deck, key_number, label, icon, disabled_state)
-    else:
-        if label == None:
-            label = selected_key.get('label', label_text)
-        if icon == None:
-            icon = selected_key.get('icon', default_icon)
-        update_key_image(deck, key_number, label, icon, disabled_state)
+        if ACTIVE_KEY_STATES[CURRENT_PAGE_ID][key_number]:
+            if label == None:
+                label = selected_key.get('label_pressed', label_text)
+            if icon == None:
+                icon = selected_key.get('icon_pressed', default_icon)
+            update_key_image(deck, key_number, label, icon, disabled_state)
+        else:
+            if label == None:
+                label = selected_key.get('label', label_text)
+            if icon == None:
+                icon = selected_key.get('icon', default_icon)
+            update_key_image(deck, key_number, label, icon, disabled_state)
+    except IndexError:
+        pass
 
 def key_change_callback(deck, key_number, pressed_state):
+    global CURRENT_PAGE_ID
     try:
         current_page_keys = KEY_DATA['pages'][CURRENT_PAGE_ID]
         current_page_keys[key_number]
@@ -269,7 +278,7 @@ if __name__ == "__main__":
                 run_init_actions(KEY_DATA["init"]["actions"])
 
         deck.reset()
-        thread = threading.Thread(target=render_page, args=(deck, 0))
+        thread = threading.Thread(target=render_page, args=(deck,))
         thread.start()
         
         # Register callback function for when a key state changes.
