@@ -84,6 +84,8 @@
             {
                 "icon": "monkey.png",
                 "icon_pressed": "speak-no-evil-monkey.png",
+                "label": "nothing",
+                "label_pressed": "pressed!",
                 "actions": [
                     {
                         "name": "run",

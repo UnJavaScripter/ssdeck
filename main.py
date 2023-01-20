@@ -16,6 +16,7 @@ KEYS_FILE_PATH = os.path.join(os.path.dirname(__file__), "./keys.json")
 ASSETS_PATH = os.path.join(os.path.dirname(__file__), "assets")
 CURRENT_PAGE_ID = 0
 global KEY_DATA
+global KEY_COUNT
 
 ACTIVE_KEY_STATES = []
 
@@ -91,22 +92,21 @@ def set_key_states(deck, key_number, selected_key, pressed_state=0):
     ui_changes(deck, key_number, pressed_state, selected_key, disabled_state, icon, label_text)
 
 def render_page(deck):
+    global CURRENT_PAGE_ID
     while True:
-        global CURRENT_PAGE_ID
         try:
             current_page_keys = KEY_DATA['pages'][CURRENT_PAGE_ID]
 
+            # Add a page if not exists, fill it with "0": keys not pressed
             if len(ACTIVE_KEY_STATES) <= CURRENT_PAGE_ID:
-                ACTIVE_KEY_STATES.append([])
-
-            ACTIVE_KEY_STATES[CURRENT_PAGE_ID] = []
+                ACTIVE_KEY_STATES.append([0]*(KEY_COUNT))
+                
             for key_number in range(len(current_page_keys)):
-                ACTIVE_KEY_STATES[CURRENT_PAGE_ID].append(0)
                 if current_page_keys[key_number]:
-                    # key_change_callback(deck, key, state=False)
                     selected_key = current_page_keys[key_number]
                     set_key_states(deck, key_number, selected_key)
-            time.sleep(0.5)
+            
+            time.sleep(0.7)
         except IndexError:
             pass
         continue
@@ -188,6 +188,7 @@ def update_key_image(deck, key, label, icon='default.png', disabled_state=False)
 
 def ui_changes(deck, key_number, pressed_state, selected_key, disabled_state=False, icon=None, label=None):
     global CURRENT_PAGE_ID
+    global ACTIVE_KEY_STATES
     
     try:
         is_toggle_key = selected_key.get('type', '') == 'toggle'
@@ -202,22 +203,19 @@ def ui_changes(deck, key_number, pressed_state, selected_key, disabled_state=Fal
             default_icon = selected_key.get('icon', 'default.png')
         
         if pressed_state and is_toggle_key:
-            if ACTIVE_KEY_STATES[CURRENT_PAGE_ID][key_number] == False:
-                ACTIVE_KEY_STATES[CURRENT_PAGE_ID][key_number] = True
+            if ACTIVE_KEY_STATES[CURRENT_PAGE_ID][key_number] == 0:
+                ACTIVE_KEY_STATES[CURRENT_PAGE_ID][key_number] = 1
             else:
-                ACTIVE_KEY_STATES[CURRENT_PAGE_ID][key_number] = False
-
-        if ACTIVE_KEY_STATES[CURRENT_PAGE_ID][key_number]:
-            if label == None:
-                label = selected_key.get('label_pressed', label_text)
-            if icon == None:
-                icon = selected_key.get('icon_pressed', default_icon)
+                ACTIVE_KEY_STATES[CURRENT_PAGE_ID][key_number] = 0
+        if ACTIVE_KEY_STATES[CURRENT_PAGE_ID][key_number] == 1:
+            label = selected_key.get('label_pressed', label_text)
+            icon = selected_key.get('icon_pressed', default_icon)
             update_key_image(deck, key_number, label, icon, disabled_state)
         else:
             if label == None:
                 label = selected_key.get('label', label_text)
             if icon == None:
-                icon = selected_key.get('icon', default_icon)
+                icon = selected_key.get('icon_pressed', default_icon)
             update_key_image(deck, key_number, label, icon, disabled_state)
     except IndexError:
         pass
@@ -240,7 +238,7 @@ def key_change_callback(deck, key_number, pressed_state):
 
     if pressed_state:
         if is_toggle_key:
-            if ACTIVE_KEY_STATES[CURRENT_PAGE_ID][key_number] == False:
+            if ACTIVE_KEY_STATES[CURRENT_PAGE_ID][key_number] == 0:
                 perform_actions(deck, selected_key['actions_toggle'])
             else:
                 perform_actions(deck, selected_key['actions'])
@@ -270,6 +268,7 @@ if __name__ == "__main__":
             deck.deck_type(), deck.get_serial_number(), deck.get_firmware_version()
         ))
 
+        KEY_COUNT = deck.key_count()
         deck.set_brightness(30)
         
         if KEY_DATA["plugins"] != None:
