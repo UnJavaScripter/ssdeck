@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ "$*" == "" ]; then
+if [ $# -eq 0 ]; then
     echo "No action provided"
     exit 1
 else
@@ -10,10 +10,10 @@ else
     metadata=$(dbus-send --print-reply --dest=$dest /org/mpris/MediaPlayer2 org.freedesktop.DBus.Properties.Get string:org.mpris.MediaPlayer2.Player string:Metadata)
 
     # If no additional arguments are passed, execute the action
-    if [[ $2 == "" ]]; then
+    if [ "$2" = "" ]; then
         dbus-send --print-reply --dest=$dest /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.$1
     fi
-    if [[ $1 == "Seek" && $2 != "" ]]; then
+    if [ "$1" = "Seek" ] && [ $2 != "" ]; then
         seek="int64:$2"
         dbus-send --print-reply --dest=$dest /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.$1 $seek
     fi
