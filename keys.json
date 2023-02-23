@@ -5,7 +5,8 @@
         "media_info",
         "insert_text",
         "clipboard",
-        "soundbox"
+        "soundbox",
+        "elgato_key_light_mini"
     ],
     "init": {
         "actions": [
@@ -173,7 +174,26 @@
                 }
             },
             {},
-            {},
+            {
+                "icon": "flashlight_on.png",
+                "label": "Key Light",
+                "actions": [
+                    {
+                        "name": "plugin:elgato_key_light_mini.Toggle_lights"
+                    }
+                ],
+                "actions_toggle": [
+                    {
+                        "name": "plugin:elgato_key_light_mini.Toggle_lights"
+                    }
+                ],
+                "type": "toggle",
+                "state_modifiers": {
+                    "pressed": "plugin:elgato_key_light_mini.Is_light_on",
+                    "icon": "plugin:elgato_key_light_mini.Key_icon_name"
+                }
+            },
+
             {
                 "icon": "smiley.png",
                 "icon_pressed": "speak-no-evil-monkey.png",

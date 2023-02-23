@@ -1,3 +1,4 @@
 wheel~=0.38.4
 Pillow~=9.3.0
 StreamDeck~=0.9.3
+requests~=2.28.2
