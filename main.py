@@ -107,7 +107,7 @@ def render_page(deck):
                     selected_key = current_page_keys[key_number]
                     set_key_states(deck, key_number, selected_key)
             
-            time.sleep(0.7)
+            time.sleep(0.25) #RAF
         except IndexError:
             pass
         continue

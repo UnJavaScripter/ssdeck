@@ -6,12 +6,16 @@
         "insert_text",
         "clipboard",
         "soundbox",
-        "elgato_key_light_mini"
+        "elgato_key_light_mini",
+        "simulate_key"
     ],
     "init": {
         "actions": [
             {
                 "name": "plugin:soundbox.Dummy_init_reqs"
+            },
+            {
+                "name": "plugin:elgato_key_light_mini.Get_info"
             }
         ]
     },
@@ -179,12 +183,14 @@
                 "label": "Key Light",
                 "actions": [
                     {
-                        "name": "plugin:elgato_key_light_mini.Toggle_lights"
+                        "name": "plugin:elgato_key_light_mini.Toggle_lights",
+                        "context": 20
                     }
                 ],
                 "actions_toggle": [
                     {
-                        "name": "plugin:elgato_key_light_mini.Toggle_lights"
+                        "name": "plugin:elgato_key_light_mini.Toggle_lights",
+                        "context": 20
                     }
                 ],
                 "type": "toggle",
@@ -195,21 +201,30 @@
             },
 
             {
-                "icon": "smiley.png",
-                "icon_pressed": "speak-no-evil-monkey.png",
+                "icon": "mic.png",
+                
                 "actions": [
                     {
-                        "name": "run",
-                        "context": "echo pressed!"
+                        "name": "plugin:simulate_key.KeyPress",
+                        "context": {
+                            "key": "XF86AudioMicMute"
+                        }
                     }
                 ],
                 "actions_toggle": [
                     {
-                        "name": "run",
-                        "context": "notify-send released!"
+                        "name": "plugin:simulate_key.KeyPress",
+                        "context": {
+                            "key": "XF86AudioMicMute"
+                        }
                     }
                 ],
-                "type": "toggle"
+                "type": "toggle",
+                "state_modifiers": {
+                    "icon": "plugin:media_info.Get_mic_status",
+                    "label": "plugin:media_info.Get_mic_status_label"
+
+                }
             },
             {
                 "icon": "next_page.png",
