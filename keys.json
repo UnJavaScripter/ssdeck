@@ -177,9 +177,18 @@
                     "pressed": "plugin:soundbox.Get_Virtual_Mic_Setup_Sucess"
                 }
             },
-            {},
+            {
+                "icon": "video_call.png",
+                "actions": [
+                    {
+                        "name": "run",
+                        "context": " /usr/bin/microsoft-edge --new-window 'https://meet.google.com/' &"
+                    }
+                ]
+            },
             {
                 "icon": "flashlight_on.png",
+                "icon_pressed": "flashlight_off.png",
                 "label": "Key Light",
                 "actions": [
                     {
@@ -195,13 +204,13 @@
                 ],
                 "type": "toggle",
                 "state_modifiers": {
-                    "pressed": "plugin:elgato_key_light_mini.Is_light_on",
-                    "icon": "plugin:elgato_key_light_mini.Key_icon_name"
-                }
+                    "pressed": "plugin:elgato_key_light_mini.Is_light_on"
+                },
+                "toggled_background_color": "#fdb851"
             },
-
             {
                 "icon": "mic.png",
+                "icon_pressed": "mic_off.png",
                 
                 "actions": [
                     {
@@ -221,10 +230,9 @@
                 ],
                 "type": "toggle",
                 "state_modifiers": {
-                    "icon": "plugin:media_info.Get_mic_status",
-                    "label": "plugin:media_info.Get_mic_status_label"
-
-                }
+                    "pressed": "plugin:media_info.Get_mic_status"
+                },
+                "toggled_background_color": "#da2930"
             },
             {
                 "icon": "next_page.png",
@@ -240,180 +248,141 @@
         ],
         [
             {
-                "icon": "video_call.png",
+                "icon": "horn.png",
+                
                 "actions": [
                     {
-                        "name": "run",
-                        "context": " /usr/bin/microsoft-edge --new-window 'https://meet.google.com/' &"
+                        "name": "plugin:simulate_key.KeyPress",
+                        "context": {
+                            "key": "ctrl+shift+1"
+                        }
                     }
                 ]
             },
             {
-                "icon": "video_call.png",
+                "icon": "cheer.png",
+                
                 "actions": [
                     {
-                        "name": "run",
-                        "context": " /usr/bin/microsoft-edge --new-window 'https://meet.google.com/' &"
+                        "name": "plugin:simulate_key.KeyPress",
+                        "context": {
+                            "key": "ctrl+shift+2"
+                        }
                     }
                 ]
             },
             {
-                "icon": "video_call.png",
+                "icon": "magic_wand.png",
+                
                 "actions": [
                     {
-                        "name": "run",
-                        "context": " /usr/bin/microsoft-edge --new-window 'https://meet.google.com/' &"
+                        "name": "plugin:simulate_key.KeyPress",
+                        "context": {
+                            "key": "ctrl+shift+6"
+                        }
                     }
                 ]
             },
             {
-                "icon": "video_call.png",
+                "icon": "drum.png",
+                
                 "actions": [
                     {
-                        "name": "run",
-                        "context": " /usr/bin/microsoft-edge --new-window 'https://meet.google.com/' &"
+                        "name": "plugin:simulate_key.KeyPress",
+                        "context": {
+                            "key": "ctrl+shift+4"
+                        }
                     }
                 ]
             },
             {
-                "icon": "video_call.png",
+                "icon": "trumpet.png",
+                
                 "actions": [
                     {
-                        "name": "run",
-                        "context": " /usr/bin/microsoft-edge --new-window 'https://meet.google.com/' &"
+                        "name": "plugin:simulate_key.KeyPress",
+                        "context": {
+                            "key": "ctrl+shift+5"
+                        }
+                    }
+                ]
+            },
+            {},
+            {},
+            {},
+            {},
+            {},
+            {
+                "icon": "mic.png",
+                "icon_pressed": "mic_off.png",
+                
+                "actions": [
+                    {
+                        "name": "plugin:simulate_key.KeyPress",
+                        "context": {
+                            "key": "XF86AudioMicMute"
+                        }
+                    }
+                ],
+                "actions_toggle": [
+                    {
+                        "name": "plugin:simulate_key.KeyPress",
+                        "context": {
+                            "key": "XF86AudioMicMute"
+                        }
+                    }
+                ],
+                "type": "toggle",
+                "state_modifiers": {
+                    "pressed": "plugin:media_info.Get_mic_status"
+                },
+                "toggled_background_color": "#da2930"
+            },
+            {
+                "icon": "light_dimmer.png",
+                "label": "Dimmer",
+                "actions": [
+                    {
+                        "name": "plugin:elgato_key_light_mini.Set_brightness_down",
+                        "context": 20
                     }
                 ]
             },
             {
-                "icon": "video_call.png",
+                "icon": "flashlight_on.png",
+                "icon_pressed": "flashlight_off.png",
+                "label": "Key Light",
                 "actions": [
                     {
-                        "name": "run",
-                        "context": " /usr/bin/microsoft-edge --new-window 'https://meet.google.com/' &"
+                        "name": "plugin:elgato_key_light_mini.Toggle_lights",
+                        "context": 20
                     }
-                ]
+                ],
+                "actions_toggle": [
+                    {
+                        "name": "plugin:elgato_key_light_mini.Toggle_lights",
+                        "context": 20
+                    }
+                ],
+                "type": "toggle",
+                "state_modifiers": {
+                    "pressed": "plugin:elgato_key_light_mini.Is_light_on"
+                },
+                "toggled_background_color": "#fdb851"
             },
             {
-                "icon": "video_call.png",
+                "icon": "light_brighter.png",
+                "label": "Brighter",
                 "actions": [
                     {
-                        "name": "run",
-                        "context": " /usr/bin/microsoft-edge --new-window 'https://meet.google.com/' &"
-                    }
-                ]
-            },
-            {
-                "icon": "video_call.png",
-                "actions": [
-                    {
-                        "name": "run",
-                        "context": " /usr/bin/microsoft-edge --new-window 'https://meet.google.com/' &"
-                    }
-                ]
-            },
-            {
-                "icon": "video_call.png",
-                "actions": [
-                    {
-                        "name": "run",
-                        "context": " /usr/bin/microsoft-edge --new-window 'https://meet.google.com/' &"
-                    }
-                ]
-            },
-            {
-                "icon": "video_call.png",
-                "actions": [
-                    {
-                        "name": "run",
-                        "context": " /usr/bin/microsoft-edge --new-window 'https://meet.google.com/' &"
-                    }
-                ]
-            },
-            {
-                "icon": "video_call.png",
-                "actions": [
-                    {
-                        "name": "run",
-                        "context": " /usr/bin/microsoft-edge --new-window 'https://meet.google.com/' &"
-                    }
-                ]
-            },
-            {
-                "icon": "video_call.png",
-                "actions": [
-                    {
-                        "name": "run",
-                        "context": " /usr/bin/microsoft-edge --new-window 'https://meet.google.com/' &"
-                    }
-                ]
-            },
-            {
-                "icon": "video_call.png",
-                "actions": [
-                    {
-                        "name": "run",
-                        "context": " /usr/bin/microsoft-edge --new-window 'https://meet.google.com/' &"
-                    }
-                ]
-            },
-            {
-                "icon": "video_call.png",
-                "actions": [
-                    {
-                        "name": "run",
-                        "context": " /usr/bin/microsoft-edge --new-window 'https://meet.google.com/' &"
+                        "name": "plugin:elgato_key_light_mini.Set_brightness_up",
+                        "context": 20
                     }
                 ]
             },
             {
                 "icon": "next_page.png",
-                "label": "Next page 2",
-                "actions": [
-                    {
-                        "name": "change_page",
-                        "context": "next"
-                    }
-                ]
-            }
-        ],
-        [
-            {},
-            {
-                "icon": "video_call.png",
-                "actions": [
-                    {
-                        "name": "run",
-                        "context": " /usr/bin/microsoft-edge --new-window 'https://meet.google.com/' &"
-                    }
-                ]
-            },
-            {
-                "icon": "next_page.png",
-                "label": "Next page 3",
-                "actions": [
-                    {
-                        "name": "change_page",
-                        "context": "next"
-                    }
-                ]
-            }
-        ],
-        [
-            {},
-            {
-                "icon": "video_call.png",
-                "actions": [
-                    {
-                        "name": "run",
-                        "context": " /usr/bin/microsoft-edge --new-window 'https://meet.google.com/' &"
-                    }
-                ]
-            },
-            {},
-            {},
-            {
-                "icon": "next_page.png",
-                "label": "Next page 4",
+                "label": "Next page",
                 "actions": [
                     {
                         "name": "change_page",

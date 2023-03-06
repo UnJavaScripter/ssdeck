@@ -1,4 +1,9 @@
 import requests
+import time
+
+retries = 3
+last_response = None
+last_response_time = 0
 
 def round_value(x, base=5):
     return base * round(x/base)
@@ -61,11 +66,21 @@ def Set_state_temp_val(brightness=10, temperature = 344, poweredOnState=None):
     
 
 def Is_light_on():
-    try:
-        lightInfo = Get_info()
-        return lightInfo['lights'][0]['on']
-    except:
-        return 0
+    global last_response
+    global last_response_time
+    if last_response and last_response_time and time.time() - last_response_time < 3:
+        return last_response['lights'][0]['on']
+
+    for retry in range(retries):
+        try:
+            lightInfo = Get_info()
+            last_response = lightInfo
+            last_response_time = time.time()
+            return lightInfo['lights'][0]['on']
+        except:
+            if retry < retries - 1:
+                time.sleep(3)
+    raise Exception('Failed to fetch data from API endpoint')
 
 def Key_icon_name():
     try:
@@ -77,10 +92,52 @@ def Key_icon_name():
         return "flashlight_on"
 
 def Toggle_lights(brightness, temperature=344):
+    global last_response
+    global last_response_time
     try:
         if Is_light_on():
             Turn_off()
         else:
             Set_state_temp_val(brightness, temperature, poweredOnState=True)
+
+        last_response = Get_info()
+        last_response_time = time.time()
+    except:
+        return None
+
+def Set_brightness_up(temperature=344):
+    global last_response
+    global last_response_time
+    try:
+        light_info = Get_info()
+        current_light_info = light_info.get("lights")[0]
+        current_brightness = current_light_info.get("brightness")
+        if current_brightness < 100:
+            Set_state_temp_val(current_brightness + 10, temperature)
+            last_response = Get_info()
+            last_response_time = time.time()
+            return current_light_info
+        else:
+            last_response = light_info
+            last_response_time = time.time()
+            return current_light_info
+    except:
+            return None
+def Set_brightness_down(temperature=344):
+    global last_response
+    global last_response_time
+    try:
+        light_info = Get_info()
+        current_light_info = light_info.get("lights")[0]
+        current_brightness = current_light_info.get("brightness")
+        if current_brightness > 10:
+            Set_state_temp_val(current_brightness - 10, temperature)
+            last_response = Get_info()
+            last_response_time = time.time()
+            return current_light_info
+        else:
+            last_response = light_info
+            last_response_time = time.time()
+            return current_light_info
     except:
         return None

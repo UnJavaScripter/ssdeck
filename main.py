@@ -72,12 +72,22 @@ def plugin_call_action(name, context=None):
 
 ###
 
-def set_key_states(deck, key_number, selected_key, pressed_state=0):
+def set_key_states(deck, key_number, selected_key, pressed_state=None):
     # key_change_callback(deck, key, state=False)
     label_text = selected_key.get('label', '')
     icon = selected_key.get('icon', 'default.png')
     disabled_state = False
     state_modifiers = selected_key.get("state_modifiers")
+    is_toggle_key = selected_key.get('type', '') == 'toggle'
+    if pressed_state:
+        if is_toggle_key:
+            if ACTIVE_KEY_STATES[CURRENT_PAGE_ID][key_number] == 0:
+                ACTIVE_KEY_STATES[CURRENT_PAGE_ID][key_number] = 1
+            else:
+                ACTIVE_KEY_STATES[CURRENT_PAGE_ID][key_number] = 0
+    else:
+        pressed_state = ACTIVE_KEY_STATES[CURRENT_PAGE_ID][key_number]
+
     if state_modifiers is not None:
         if state_modifiers.get("label"):
             label_text = plugin_get_attribute(state_modifiers["label"]).replace("_", " ")
@@ -88,8 +98,8 @@ def set_key_states(deck, key_number, selected_key, pressed_state=0):
         if state_modifiers.get("disabled_state"):
             disabled_state = not plugin_get_attribute(state_modifiers["disabled_state"])
         if state_modifiers.get("pressed"):
-            pressed_state = plugin_get_attribute(state_modifiers["pressed"])
-        
+            ACTIVE_KEY_STATES[CURRENT_PAGE_ID][key_number] = plugin_get_attribute(state_modifiers["pressed"])
+
     ui_changes(deck, key_number, pressed_state, selected_key, disabled_state, icon, label_text)
 
 def render_page(deck):
@@ -149,14 +159,15 @@ def perform_actions(deck, actions):
             else:
                 print(f"Unknown command {action['name']}")
 
-def render_key_image(deck, icon_filename, font_filename, label_text, is_disabled=False):
+def render_key_image(deck, icon_filename, font_filename, label_text, background=None, is_disabled=False):
     if is_disabled:
         icon = Image.open(icon_filename).convert('LA')
     else:
         icon = Image.open(icon_filename)
+    
     # Resize the source image asset to best-fit the dimensions of a single key.
     # A margin at the bottom is applied when a label is specified.
-    image = PILHelper.create_scaled_image(deck, icon, margins=[0, 0, 20 if label_text else 0, 0])
+    image = PILHelper.create_scaled_image(deck, icon, margins=[0, 0, 20 if label_text else 0, 0], background=background)
 
     # Load a custom TrueType font and use it to overlay the key index, draw key
     # label onto the image a few pixels from the bottom of the key.
@@ -174,25 +185,28 @@ def get_key_style(icon='default.png'):
         "font": os.path.join(ASSETS_PATH, "fonts", "Roboto-Regular.ttf"),
     }
 
-def update_key_image(deck, key, label, icon='default.png', disabled_state=False):
+def update_key_image(deck, key_number, selected_key, label, icon='default.png', disabled_state=False):
     # Determine what icon and label to use on the generated key.
     key_style = get_key_style(icon)
+    pressed_state = ACTIVE_KEY_STATES[CURRENT_PAGE_ID][key_number]
+    toggled_background_color = selected_key.get('toggled_background_color', None) if pressed_state else None
+
+
 
     # Generate the custom key with the requested image and label.
-    image = render_key_image(deck, key_style["icon"], key_style["font"], label, disabled_state)
+    image = render_key_image(deck, key_style["icon"], key_style["font"], label, background=toggled_background_color, is_disabled=disabled_state)
 
     # Use a scoped-with on the deck to ensure we're the only thread using it
     # right now.
     with deck:
         # Update requested key with the generated image.
-        deck.set_key_image(key, image)
+        deck.set_key_image(key_number, image)
 
 def ui_changes(deck, key_number, pressed_state, selected_key, disabled_state=False, icon=None, label=None):
     global CURRENT_PAGE_ID
     global ACTIVE_KEY_STATES
     
     try:
-        is_toggle_key = selected_key.get('type', '') == 'toggle'
         
         if label:
             label_text = label
@@ -203,21 +217,17 @@ def ui_changes(deck, key_number, pressed_state, selected_key, disabled_state=Fal
         else:
             default_icon = selected_key.get('icon', 'default.png')
         
-        if pressed_state and is_toggle_key:
-            if ACTIVE_KEY_STATES[CURRENT_PAGE_ID][key_number] == 0:
-                ACTIVE_KEY_STATES[CURRENT_PAGE_ID][key_number] = 1
-            else:
-                ACTIVE_KEY_STATES[CURRENT_PAGE_ID][key_number] = 0
+
         if ACTIVE_KEY_STATES[CURRENT_PAGE_ID][key_number] == 1:
             label = selected_key.get('label_pressed', label_text)
             icon = selected_key.get('icon_pressed', default_icon)
-            update_key_image(deck, key_number, label, icon, disabled_state)
+            update_key_image(deck, key_number, selected_key, label, icon, disabled_state=disabled_state)
         else:
             if label == None:
                 label = selected_key.get('label', label_text)
             if icon == None:
                 icon = selected_key.get('icon_pressed', default_icon)
-            update_key_image(deck, key_number, label, icon, disabled_state)
+            update_key_image(deck, key_number, selected_key, label, icon, disabled_state)
     except IndexError:
         pass
 
