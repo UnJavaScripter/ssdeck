@@ -68,19 +68,16 @@ def Set_state_temp_val(brightness=10, temperature = 344, poweredOnState=None):
 def Is_light_on():
     global last_response
     global last_response_time
-    if last_response and last_response_time and time.time() - last_response_time < 3:
+    if last_response and last_response_time:
         return last_response['lights'][0]['on']
-
-    for retry in range(retries):
+    else:
         try:
-            lightInfo = Get_info()
-            last_response = lightInfo
+            last_response = Get_info()
             last_response_time = time.time()
-            return lightInfo['lights'][0]['on']
+            return last_response['lights'][0]['on']
         except:
-            if retry < retries - 1:
-                time.sleep(3)
-    raise Exception('Failed to fetch data from API endpoint')
+            return 0
+
 
 def Key_icon_name():
     try:
@@ -115,6 +112,7 @@ def Set_brightness_up(temperature=344):
         if current_brightness < 100:
             Set_state_temp_val(current_brightness + 10, temperature)
             last_response = Get_info()
+            print(f"up: {last_response}")
             last_response_time = time.time()
             return current_light_info
         else:
@@ -133,6 +131,7 @@ def Set_brightness_down(temperature=344):
         if current_brightness > 10:
             Set_state_temp_val(current_brightness - 10, temperature)
             last_response = Get_info()
+            print(f"down: {last_response}")
             last_response_time = time.time()
             return current_light_info
         else:

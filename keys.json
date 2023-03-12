@@ -112,9 +112,9 @@
                 "icon": "emdash.png",
                 "actions": [
                     {
-                        "name": "plugin:insert_text.Insert",
+                        "name": "plugin:simulate_key.KeyPress",
                         "context": {
-                            "text": "—"
+                            "key": "U2014"
                         }
                     }
                 ]
@@ -187,8 +187,8 @@
                 ]
             },
             {
-                "icon": "flashlight_on.png",
-                "icon_pressed": "flashlight_off.png",
+                "icon": "flashlight_off.png",
+                "icon_pressed": "flashlight_on.png",
                 "label": "Key Light",
                 "actions": [
                     {
@@ -349,8 +349,8 @@
                 ]
             },
             {
-                "icon": "flashlight_on.png",
-                "icon_pressed": "flashlight_off.png",
+                "icon": "flashlight_off.png",
+                "icon_pressed": "flashlight_on.png",
                 "label": "Key Light",
                 "actions": [
                     {
