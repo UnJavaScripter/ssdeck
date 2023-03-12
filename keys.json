@@ -157,26 +157,7 @@
                     "disabled_state": "plugin:soundbox.Get_Virtual_Mic_Setup_Sucess"
                 }
             },
-            {
-                "icon": "mic_external_off.png",
-                "label": "V. Mic Off",
-                "icon_pressed": "mic_external.png",
-                "label_pressed": "V. Mic On",
-                "actions": [
-                    {
-                        "name": "plugin:soundbox.Setup_virtual_mic"
-                    }
-                ],
-                "actions_toggle": [
-                    {
-                        "name": "plugin:soundbox.Remove_virtual_mic"
-                    }
-                ],
-                "type": "toggle",
-                "state_modifiers": {
-                    "pressed": "plugin:soundbox.Get_Virtual_Mic_Setup_Sucess"
-                }
-            },
+            {},
             {
                 "icon": "video_call.png",
                 "actions": [
@@ -309,9 +290,38 @@
             },
             {},
             {},
+            {
+                "icon": "monkey.png",
+                "icon_pressed": "speak-no-evil-monkey.png",
+                "label": "nothing",
+                "label_pressed": "pressed!",
+                "actions": [
+                    {
+                        "name": "run",
+                        "context": "echo action_iwaspressed!"
+                    }
+                ],
+                "actions_toggle": [
+                    {
+                        "name": "plugin:notify.Notify",
+                        "context": {
+                            "message": "it works!!!"
+                        }
+                    }
+                ],
+                "type": "toggle"
+            },
             {},
-            {},
-            {},
+            {
+                "icon": "light_brighter.png",
+                "label": "Brighter",
+                "actions": [
+                    {
+                        "name": "plugin:elgato_key_light_mini.Set_brightness_up",
+                        "context": 20
+                    }
+                ]
+            },
             {
                 "icon": "mic.png",
                 "icon_pressed": "mic_off.png",
@@ -370,6 +380,7 @@
                 },
                 "toggled_background_color": "#fdb851"
             },
+
             {
                 "icon": "light_brighter.png",
                 "label": "Brighter",

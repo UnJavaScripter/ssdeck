@@ -16,8 +16,8 @@ PLUGINS = dict()
 KEYS_FILE_PATH = os.path.join(os.path.dirname(__file__), "./keys.json")
 ASSETS_PATH = os.path.join(os.path.dirname(__file__), "assets")
 CURRENT_PAGE_ID = 0
-global KEY_DATA
-global KEY_COUNT
+KEY_DATA = []
+KEY_COUNT = 0
 
 ACTIVE_KEY_STATES = []
 
@@ -73,44 +73,49 @@ def plugin_call_action(name, context=None):
 ###
 
 def set_key_states(deck, key_number, selected_key, pressed_state=None):
-    # key_change_callback(deck, key, state=False)
-    label_text = selected_key.get('label', '')
-    icon = selected_key.get('icon', 'default.png')
-    disabled_state = False
-    state_modifiers = selected_key.get("state_modifiers")
-    is_toggle_key = selected_key.get('type', '') == 'toggle'
-    if pressed_state:
-        if is_toggle_key:
-            if ACTIVE_KEY_STATES[CURRENT_PAGE_ID][key_number] == 0:
-                ACTIVE_KEY_STATES[CURRENT_PAGE_ID][key_number] = 1
-            else:
-                ACTIVE_KEY_STATES[CURRENT_PAGE_ID][key_number] = 0
-    else:
-        pressed_state = ACTIVE_KEY_STATES[CURRENT_PAGE_ID][key_number]
+    global ACTIVE_KEY_STATES
+    global CURRENT_PAGE_ID
 
-    if state_modifiers is not None:
-        if state_modifiers.get("label"):
-            label_text = plugin_get_attribute(state_modifiers["label"]).replace("_", " ")
-        if state_modifiers.get("icon"):
-            modified_icon_name = plugin_get_attribute(state_modifiers["icon"]).strip()
-            if len(modified_icon_name) > 0:
-                icon = f'{modified_icon_name}.png'
-        if state_modifiers.get("disabled_state"):
-            disabled_state = not plugin_get_attribute(state_modifiers["disabled_state"])
-        if state_modifiers.get("pressed"):
-            ACTIVE_KEY_STATES[CURRENT_PAGE_ID][key_number] = plugin_get_attribute(state_modifiers["pressed"])
+    with deck:
+        label_text = selected_key.get('label', '')
+        icon = selected_key.get('icon', 'default.png')
+        disabled_state = False
+        state_modifiers = selected_key.get("state_modifiers")
+        is_toggle_key = selected_key.get('type', '') == 'toggle'
+        if pressed_state:
+            if is_toggle_key:
+                if ACTIVE_KEY_STATES[CURRENT_PAGE_ID][key_number] == 0:
+                    ACTIVE_KEY_STATES[CURRENT_PAGE_ID][key_number] = 1
+                else:
+                    ACTIVE_KEY_STATES[CURRENT_PAGE_ID][key_number] = 0
+        else:
+            pressed_state = ACTIVE_KEY_STATES[CURRENT_PAGE_ID][key_number]
+            
 
-    ui_changes(deck, key_number, pressed_state, selected_key, disabled_state, icon, label_text)
+        if state_modifiers is not None:
+            if state_modifiers.get("label"):
+                label_text = plugin_get_attribute(state_modifiers["label"]).replace("_", " ")
+            if state_modifiers.get("icon"):
+                modified_icon_name = plugin_get_attribute(state_modifiers["icon"]).strip()
+                if len(modified_icon_name) > 0:
+                    icon = f'{modified_icon_name}.png'
+            if state_modifiers.get("disabled_state"):
+                disabled_state = not plugin_get_attribute(state_modifiers["disabled_state"])
+            if state_modifiers.get("pressed"):
+                ACTIVE_KEY_STATES[CURRENT_PAGE_ID][key_number] = plugin_get_attribute(state_modifiers["pressed"])
+
+        ui_changes(deck, key_number, pressed_state, selected_key, disabled_state, icon, label_text)
 
 def render_page(deck):
+    global ACTIVE_KEY_STATES
     global CURRENT_PAGE_ID
     while True:
         try:
             current_page_keys = KEY_DATA['pages'][CURRENT_PAGE_ID]
 
-            # Add a page if not exists, fill it with "0": keys not pressed
-            if len(ACTIVE_KEY_STATES) <= CURRENT_PAGE_ID:
-                ACTIVE_KEY_STATES.append([0]*(KEY_COUNT))
+            # Add a page if not exists, fill it with "0" as many times as KEY_COUNT: keys not pressed
+            if len(ACTIVE_KEY_STATES) == 0:
+                ACTIVE_KEY_STATES = [[0]*(KEY_COUNT)] * len(KEY_DATA['pages'])
                 
             for key_number in range(len(current_page_keys)):
                 if current_page_keys[key_number]:
@@ -139,6 +144,7 @@ def action_change_page(deck, page):
             CURRENT_PAGE_ID = 0
         else:
             CURRENT_PAGE_ID = CURRENT_PAGE_ID + 1
+    
 
 def initialize_plugins(plugins):
     for plugin in plugins:
