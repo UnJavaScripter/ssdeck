@@ -22,7 +22,7 @@ headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
 
 def Get_info():
     try:
-        response = requests.get(f'{url}/lights', headers=headers, timeout=0.1)
+        response = requests.get(f'{url}/lights', headers=headers, timeout=0.25)
         return response.json()
     except:
         return None
@@ -30,7 +30,7 @@ def Get_info():
 def Turn_off():
     try:
         data = { "lights": [{ "on": 0 }] }
-        requests.put(f'{url}/lights', headers=headers, json=data, timeout=0.1)
+        requests.put(f'{url}/lights', headers=headers, json=data, timeout=0.25)
     except:
         return None
 
@@ -38,7 +38,7 @@ def Turn_off():
 def Turn_on():
     try:
         data = { "lights": [{ "on": 1 }] }
-        requests.put(f'{url}/lights', headers=headers, json=data, timeout=0.1)
+        requests.put(f'{url}/lights', headers=headers, json=data, timeout=0.25)
     except:
         return None
 
@@ -48,7 +48,7 @@ def Set_state_temp_kelvin(brightness=10, temperature = 344, poweredOnState=None)
             data = { "numberOfLights": 1, "lights": [ { "on": poweredOnState, "brightness": brightness, "temperature": round_temp_value(temperature) } ] }
         else :
             data = { "numberOfLights": 1, "lights": [ { "brightness": brightness, "temperature": round_temp_value(temperature) } ] }
-        requests.put(f'{url}/lights', headers=headers, json=data, timeout=0.1)
+        requests.put(f'{url}/lights', headers=headers, json=data, timeout=0.25)
     except:
         return None
     
@@ -60,7 +60,7 @@ def Set_state_temp_val(brightness=10, temperature = 344, poweredOnState=None):
             data = { "numberOfLights": 1, "lights": [ { "on": poweredOnState, "brightness": brightness, "temperature": round_temp_value(1000000/temperature) } ] }
         else :
             data = { "numberOfLights": 1, "lights": [ { "brightness": brightness, "temperature": round_temp_value(1000000/temperature) } ] }
-        requests.put(f'{url}/lights', headers=headers, json=data, timeout=0.1)
+        requests.put(f'{url}/lights', headers=headers, json=data, timeout=0.25)
     except:
         return None
     
